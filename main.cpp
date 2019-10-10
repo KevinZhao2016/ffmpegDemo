@@ -1,0 +1,349 @@
+#include "crypto.cpp"
+#include "base_64.cpp"
+#include "signMark.cpp"
+#include "global.h"
+#include "framecrypto.h"
+
+using namespace std;
+
+
+string PRIVATE_KEY = "-----BEGIN EC PRIVATE KEY-----\n"
+        "MHcCAQEEIOM9oRgXxjg2ls56/gcSVI687gDL6tJGW0xDnXORUAe2oAoGCCqBHM9V\n"
+        "AYItoUQDQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2Y\n"
+        "HpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==\n"
+        "-----END EC PRIVATE KEY-----";
+string PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n"
+        "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6Kj\n"
+        "UzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==\n"
+        "-----END PUBLIC KEY-----";
+string sig_base64 = "MEUCIEkjtHpklPWvrdncb3N2UZQltmpnGywEz77VmPvQQWRfAiEA5vM8jBBQtkKv6hXVGOMXzYLIDnQne+obo8U2SxeRrgE=";
+
+int Open_In_fine(const char *infile, int &videoidx, int &audioidx, AVFormatContext *&ic) {
+    avformat_open_input(&ic, infile, nullptr, nullptr);
+    if (!ic) {
+        cout << "avformat_open_input failed!" << endl;
+        return -1;
+    }
+    for (int i = 0; i < ic->nb_streams; i++) {
+        if (ic->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+            videoidx = i;
+        if (ic->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+            audioidx = i;
+    }
+    if (videoidx == -1) {
+        cout << "Codec find failed!" << endl;
+        return -1;
+    }
+//    av_dump_format(ic, 0, infile, 0); //视频基本信息
+    cout << "open......" << endl;
+    return 0;
+}
+
+int Open_out_put_file(const char *outfile, int &videoidx, int &audioidx, AVStream *videoStream, AVStream *audioStream,
+                      AVFormatContext *&ic, AVFormatContext *&oc) {
+    avformat_alloc_output_context2(&oc, nullptr, nullptr, outfile);
+    if (!oc) {
+        cout << "avformat_alloc_output_context2 " << outfile << " failed!" << endl;
+        return -1;
+    }
+    if (videoidx != -1) {
+        videoStream = avformat_new_stream(oc, nullptr);
+        avcodec_parameters_copy(videoStream->codecpar, ic->streams[videoidx]->codecpar);
+        videoStream->codecpar->codec_tag = 0;
+    }
+    if (audioidx != -1) {
+        audioStream = avformat_new_stream(oc, nullptr);
+        avcodec_parameters_copy(audioStream->codecpar, ic->streams[audioidx]->codecpar);
+        audioStream->codecpar->codec_tag = 0;
+    }
+
+//    av_dump_format(oc, 0, outfile, 1);//视频基本信息
+    int ret = avio_open(&oc->pb, outfile, AVIO_FLAG_WRITE);
+    if (ret < 0) {
+        cout << "avio open failed!" << endl;
+        return -1;
+    }
+    ret = avformat_write_header(oc, nullptr);
+    if (ret < 0) {
+        cout << "avformat_write_header failed!" << endl;
+    }
+    return 0;
+}
+
+void Time_base(AVPacket *pkt, AVFormatContext *&ic, AVFormatContext *&oc) {
+    pkt->pts = av_rescale_q_rnd(pkt->pts,
+                                ic->streams[pkt->stream_index]->time_base,
+                                oc->streams[pkt->stream_index]->time_base,
+                                (AVRounding) (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX)
+    );
+    pkt->dts = av_rescale_q_rnd(pkt->dts,
+                                ic->streams[pkt->stream_index]->time_base,
+                                oc->streams[pkt->stream_index]->time_base,
+                                (AVRounding) (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX)
+    );
+    pkt->pos = -1;
+    pkt->duration = av_rescale_q_rnd(pkt->duration,
+                                     ic->streams[pkt->stream_index]->time_base,
+                                     oc->streams[pkt->stream_index]->time_base,
+                                     (AVRounding) (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX)
+    );
+}
+
+//void encrypt_frame(AVFrame *frame, int height, int width) {
+//    //todo
+//    for (int y = 0; y < height; ++y) {
+//        for (int x = 0; x < width; ++x) {
+//            //帧加密
+//            //frame->data[0][y * frame->linesize[0] + x] = x + y + 3;
+//            frame->data[0][y * frame->linesize[0] + x] /= 2;
+//        }
+//    }
+//}
+
+
+void
+av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AVFormatContext *ic, AVFormatContext *oc,
+                       AVPacket *pkt, AVFrame *frame, bool watermark, int &count) {
+    int height = ct->height, width = ct->width;
+    int value = avcodec_send_packet(ct, pkt);
+    //水印时找第一个非关键帧 count
+    if (value < 0) {
+        cout << "result:" << value << endl;
+        cout << "send frame failed" << endl;
+        return;
+    }
+
+    while (value >= 0) {
+        value = avcodec_receive_frame(ct, frame);
+        if (value == AVERROR(EAGAIN) || value == AVERROR_EOF) {
+            cout << "need more pkt" << endl;
+            break;
+        } else if (value < 0) {
+            cout << "Error during decoding" << endl;
+            return;
+        }
+        printf("receive frame %3d\n", ct->frame_number);
+        if (!watermark && frame->key_frame) {
+            //加密关键帧
+            encrypt_frame(frame, height, width, height, frame->linesize[0]);
+        }
+
+        if (watermark && count == 0 && frame->key_frame == 1) { //找到第一个非关键帧，插入水印
+            count++;
+            insertMark(frame);
+        }
+
+        value = avcodec_send_frame(outAVCodecContext, frame);
+        if (value < 0) {
+            cout << "value: " << value << endl;
+            cout << "Error sending a frame for encoding" << endl;
+            return;
+        }
+        while (value >= 0) {
+            value = avcodec_receive_packet(outAVCodecContext, pkt);
+            if (value == AVERROR(EAGAIN) || value == AVERROR_EOF) {
+                return;
+            } else if (value < 0) {
+                cout << "Error during encoding" << endl;
+                return;
+            }
+            cout << "encoding success" << endl;
+            Time_base(pkt, ic, oc);
+            av_write_frame(oc, pkt);
+        }
+    }
+}
+
+int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify, signature *sig) {
+    int count = 0; //从第二个关键帧开始签名
+    static Crypto crypto = Crypto();
+    crypto.initSM2();
+
+    AVPacket *pkt = av_packet_alloc();
+    enum AVCodecID codec_id = AV_CODEC_ID_H264;//解码编码
+    AVCodec *pCodec = avcodec_find_decoder(codec_id);//找解码器
+    AVCodecContext *pCodecCtx = avcodec_alloc_context3(pCodec);//分配AVCodecContext上下文
+    avcodec_parameters_to_context(pCodecCtx, ic->streams[videoidx]->codecpar);
+    if (!pCodecCtx) {
+        cout << "Could not allocate video codec context" << endl;
+        return -1;
+    }
+    if (avcodec_open2(pCodecCtx, pCodec, nullptr) < 0) {//打开解码器
+        printf("Could not open decodec\n");
+        return -1;
+    }
+    while (av_read_frame(ic, pkt) >= 0) {
+        if (pkt->stream_index == videoidx) {
+            if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
+                if (count > 1)
+                    crypto.UpdateSignBySM2(&pkt->pts, pkt->size);
+                count++;
+            }
+            continue;
+        } else if (pkt->stream_index == audioidx) {
+
+            continue;
+        }
+        av_packet_unref(pkt);
+        av_packet_free(&pkt);
+    }
+    unsigned char *p = sig->message;
+    if (if_verify) {
+        return crypto.finishVerify(p, sig->size, PUBLIC_KEY);
+    } else {
+        sig->size = crypto.finishSigh(p, PRIVATE_KEY);
+        return -1;
+    }
+    avcodec_free_context(&pCodecCtx);
+}
+
+void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) {
+    int height = ct->height, width = ct->width;
+    int value = avcodec_send_packet(ct, pkt);
+    int i = 0;
+    //水印时找第一个关键帧
+    if (value < 0) {
+        cout << "result:" << value << endl;
+        cout << "send frame failed" << endl;
+        return;
+    }
+    while (value >= 0) {
+        value = avcodec_receive_frame(ct, frame);
+        if (value == AVERROR(EAGAIN) || value == AVERROR_EOF) {
+            cout << "need more pkt" << endl;
+            break;
+        } else if (value < 0) {
+            cout << "Error during decoding" << endl;
+            return;
+        }
+        printf("receive frame %3d\n", ct->frame_number);
+        if (frame->key_frame == 1) { //找到第一个关键帧，取出水印
+            cout << "found!" << endl;
+            getMark(frame);
+            count++;
+            return;
+//            cout << (int)frame->data[2][71] << endl;
+//            for (i = 0; i < 75; ++i) {
+//                //(height - 1) * frame->linesize[1] +
+//               sig.message[i] = frame->data[1][i];
+//                cout << frame->data[2][i]-sig.message[i] << endl;
+//                if (i >= 70 && frame->data[2][i + 1] == 128) {
+//                    sig.size = i + 1;
+//                    count++;
+//                    cout << i + 1<< endl;
+//                    return;
+//                }
+//            }
+        }
+    }
+}
+
+void getPkt(AVFormatContext *ic, int &videoidx, int &audioidx) {
+    AVPacket *pkt = av_packet_alloc();
+    AVFrame *frame = av_frame_alloc();
+    enum AVCodecID codec_id = AV_CODEC_ID_H264;//解码编码
+    AVCodec *pCodec = avcodec_find_decoder(codec_id);//找解码器
+    AVCodecContext *pCodecCtx = avcodec_alloc_context3(pCodec);//分配AVCodecContext上下文
+    avcodec_parameters_to_context(pCodecCtx, ic->streams[videoidx]->codecpar);
+    if (!pCodecCtx) {
+        cout << "Could not allocate video codec context" << endl;
+        return;
+    }
+    AVDictionary *param = nullptr;
+    av_dict_set(&param, "preset", "ultrafast", 0);
+    av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
+    if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
+        printf("Could not open decodec\n");
+        return;
+    }
+    int count = 0;
+    while (av_read_frame(ic, pkt) >= 0 && count == 0) {
+        if (pkt->stream_index == videoidx) {
+            decodeFrame(pCodecCtx, pkt, frame, count);
+            //获取签名 保存到sig
+            continue;
+        } else if (pkt->stream_index == audioidx) {
+
+            continue;
+        }
+        av_packet_unref(pkt);
+        av_packet_free(&pkt);
+    }
+    avcodec_free_context(&pCodecCtx);
+}
+
+void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int &audioidx, bool watermark) {
+    AVPacket *pkt = av_packet_alloc();
+    AVFrame *frame = av_frame_alloc();
+    enum AVCodecID codec_id = AV_CODEC_ID_H264;//解码编码
+
+    AVCodec *pCodec = avcodec_find_decoder(codec_id);//找解码器
+    AVCodec *penCodec = avcodec_find_encoder(codec_id);//找编码器
+
+    AVCodecContext *pCodecCtx = avcodec_alloc_context3(pCodec);//分配AVCodecContext上下文
+    avcodec_parameters_to_context(pCodecCtx, ic->streams[videoidx]->codecpar);
+
+    if (!pCodecCtx) {
+        cout << "Could not allocate video codec context" << endl;
+        return;
+    }
+    AVDictionary *param = nullptr;
+    av_dict_set(&param, "preset", "ultrafast", 0);
+    av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
+    if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
+        printf("Could not open decodec\n");
+        return;
+    }
+
+    AVCodecContext *poutCodecCtx = avcodec_alloc_context3(penCodec);//分配AVCodecContext上下文
+    if (!poutCodecCtx) {
+        cout << "Could not allocate video codec context" << endl;
+        return;
+    }
+    if (avcodec_parameters_to_context(poutCodecCtx, ic->streams[videoidx]->codecpar) < 0) {
+        cout << "copy params failed" << endl;
+    }
+    poutCodecCtx->time_base = (AVRational) {1, 30};
+    poutCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+    if (avcodec_open2(poutCodecCtx, penCodec, &param) < 0) {//打开编码器
+        printf("Could not open encodec\n");
+        return;
+    }
+    int count = 0;
+    while (av_read_frame(ic, pkt) >= 0) {
+        if (pkt->stream_index == videoidx) {
+            av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, count);
+            cout << "__________" << endl;
+//            cout << "pkt flag " << pkt->flags << endl;
+            if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
+//                cout << "KEY_PKT" << endl;
+//                cout << pkt->size << endl;
+//                for (int i = 0; i < 40; ++i) {
+//                    cout << (long long)pkt->data[i] << " ";
+//                }
+//                cout << crypto.getHashBySM3(pkt->data, dgst, pkt->size) << endl;
+//                for (int i = 0; i < 32; ++i) {
+//                    printf("%02x ", dgst[i]);
+//                    fileHash[i] ^= dgst[i];
+//                }
+//                cout << endl;
+            }
+//            av_write_frame(oc, pkt);  //todo
+            continue;
+        } else if (pkt->stream_index == audioidx) {
+            av_write_frame(oc, pkt);
+            continue;
+        }
+        av_packet_unref(pkt);
+        av_packet_free(&pkt);
+    }
+    av_write_trailer(oc);
+    avcodec_free_context(&pCodecCtx);
+    avcodec_free_context(&poutCodecCtx);
+}
+
+void close_ffmpeg(AVFormatContext *&ic, AVFormatContext *oc) {
+    avformat_close_input(&ic);
+    avformat_free_context(oc);
+}
+
