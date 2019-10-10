@@ -44,6 +44,11 @@ void stream_encrypt(uint8_t* mat, EVP_CIPHER_CTX *en, int layer_start, int layer
             } else if (mode == 0) {
                 EVP_EncodeUpdate(en, msg, &outputlen, &at(mat, i, layer - i), 1);
             }
+#ifdef debug
+            if (fabs(at(mat, ii, layer - ii) - msg[0]) > 64) {
+                printf("encrypt loss %d: %d -> %d\n", ++count, (int)(at(mat, ii, layer - ii), (int)msg[0]);
+            }
+#endif
             at(mat, i, layer - i) = msg[0]; 
         }
     }
@@ -61,7 +66,7 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
     }
 }
 
-void dct_frame(float *mat, int __height, int __width) {
+void dct_frame(float *mat, int __height, int __width, int mode) {
     float res[8][8];
     float slice[8][8];
     uint8_t discrete_slice[8][8];
@@ -118,38 +123,14 @@ void dct_frame(float *mat, int __height, int __width) {
                 }
             }
 
-            //stream_encrypt();
-            /*
-             * strong key encryption.
-             * layer: 2 (from [0, 2] to [2, 0]), 3, 4, 5
-             */
-            int msglen;
-//            for (int layer = 2; layer <= 5; layer++) {
-//                for (int ii = layer; ii >= 0; ii--) {
-//                    // encrypt pixel[ii][layer - ii].
-//                    EVP_EncryptUpdate(strong_en, msg, &msglen, &discrete_slice[ii][layer - ii], 1);
-//                    discrete_slice[ii][layer - ii] = msg[0];
-//                }
-//            }
-            /*
-             * strong key encryption.
-             * layer: 4 (from [0, 4] to [4, 0]), 5
-             */
-            static int count = 0;
-            for (int layer = 10; layer <= 10; layer++) {
-                for (int ii = layer; ii >= 0; ii--) {
-                    // encrypt pixel[ii][layer - ii].
-                    if (ii >= 8 || layer - ii >= 8) continue;
-
-                    EVP_EncryptUpdate(weak_en, msg, &msglen, &discrete_slice[ii][layer - ii], 1);
-#ifdef debug
-                    if (fabs(discrete_slice[ii][layer - ii] - msg[0]) > 64) {
-                        printf("encrypt loss %d: %d -> %d\n", ++count, (int)discrete_slice[ii][layer - ii], (int)msg[0]);
-                    }
-#endif
-                    slice[ii][layer - ii] = (float)msg[0] + loss[ii][layer - ii];
+            stream_encrypt((uint8_t *)discrete_slice, strong_en, 8, 9, mode);
+            stream_encrypt((uint8_t *)discrete_slice, weak_en, 10, 10, mode);
+            for (int ii = 0; ii < 8; ++ii) {
+                for (int jj = 0; jj < 8; ++jj) {
+                    slice[ii][jj] = discrete_slice[ii][jj] + loss[ii][jj];
                 }
             }
+
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
                     at(mat, i + ii, j + jj) = slice[ii][jj];
@@ -200,6 +181,7 @@ void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, in
     //EVP_CIPHER_CTX* strong_en;
     //EVP_CIPHER_CTX* weak_en;
     EVP_CIPHER_CTX_init(strong_en);
+    EVP_CIPHER_CTX_init(weak_en);
     const EVP_CIPHER *cipher_type;
     uint8_t *passkey, *passiv, *plaintxt;
     uint8_t *plaintext = nullptr;
@@ -213,7 +195,7 @@ void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, in
     EVP_EncryptInit_ex(strong_en, cipher_type, nullptr, strong_key, strong_iv);
     EVP_EncryptInit_ex(weak_en, cipher_type, nullptr, weak_key, weak_iv);
 
-    dct_frame(precise_mat, encrypt_height, encrypt_width);
+    dct_frame(precise_mat, encrypt_height, encrypt_width, MODE_ENCRYPT);
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
 //#ifdef spy
@@ -221,6 +203,50 @@ void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, in
 #ifdef spy
          if (fabs(mat[i] - precise_mat[i]) > 64) {
              printf("%d: %d %d\n", ++count, (int)mat[i], (int)precise_mat[i]);
+         }
+#endif
+         mat[i] = (uint8_t)precise_mat[i];
+    }
+//#endif
+    EVP_CIPHER_CTX_cleanup(strong_en);
+    EVP_CIPHER_CTX_cleanup(weak_en);
+    delete precise_mat;
+}
+
+void decrypt_frame(AVFrame *frame, int height, int width, int decrypt_height, int decrypt_width) {
+    uint8_t* mat = frame->data[0];
+    float* precise_mat = new float[encrypt_height * encrypt_width];
+    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
+        precise_mat[i] = (float) mat[i];
+    }
+    //float A[8][8], At[8][8];
+    initDctMat();
+    //EVP_CIPHER_CTX* strong_en;
+    //EVP_CIPHER_CTX* weak_en;
+    EVP_CIPHER_CTX_init(strong_en);
+    EVP_CIPHER_CTX_init(weak_en);
+    const EVP_CIPHER *cipher_type;
+    uint8_t *passkey, *passiv, *plaintxt;
+    uint8_t *plaintext = nullptr;
+    //uint8_t *strong_key, *weak_key;
+    unsigned char *strong_key = (unsigned char*) "Tsutsukakushi tsukiko";
+    unsigned char *weak_key = (unsigned char*) "Azuki azusa";
+
+
+    uint8_t strong_iv[] = { 0x00 }, weak_iv[] = { 0x00 };
+    cipher_type = EVP_zuc();
+    //EVP_DecryptInit_ex(strong_en, cipher_type, nullptr, strong_);
+    EVP_DencryptInit_ex(strong_en, cipher_type, nullptr, strong_key, strong_iv);
+    EVP_DecryptInit_ex(weak_en, cipher_type, nullptr, weak_key, weak_iv);
+
+    dct_frame(precise_mat, encrypt_height, encrypt_width, MODE_DECRYPT);
+    idct_frame(precise_mat, encrypt_height, encrypt_width);
+
+    static int count;
+    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
+#ifdef spy
+         if (fabs(mat[i] - precise_mat[i]) > 64) {
+             printf("Answer loss %d: %d %d\n", ++count, (int)mat[i], (int)precise_mat[i]);
          }
 #endif
          mat[i] = (uint8_t)precise_mat[i];
