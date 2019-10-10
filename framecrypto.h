@@ -20,12 +20,15 @@ extern "C" {
 #include <iostream>
 
 #define at(m, x, y) m[(y) * (linelen) + (x)]
+#define MODE_ENCRYPT 0
+#define MODE_DECRYPT 1
 
 using namespace std;
 
 const int MAX_PADDING_LEN = 16;
 
 typedef uint8_t pixel;
+typedef int crypto_mode;
 void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, int encrypt_width);
 
 void dct_frame(AVFrame *frame, int height, int width);

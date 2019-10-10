@@ -27,8 +27,26 @@ void initDctMat()  //计算8x8块的离散余弦变换系数
     //cin >> a;
 }
 
-void stream_encrypt(uint8_t* mat) {
+void stream_encrypt(uint8_t* mat, EVP_CIPHER_CTX *en, int layer_start, int layer_end, crypto_mode mode) {
+    /*
+     * if mode is 0, encode; if mode is 1, decode.
+     */
+    int linelen = 8;
+    char msg[8];
+    int outputlen = 0;
+    for (int layer = layer_start, layer <= layer_end, layer++) {
+        for (int i = layer; i >= 0; i--) {
+            
+            if (i >= 8 || layer - i >= 8) continue;
 
+            if (mode == 1) {
+                EVP_DecodeUpdate(en, msg, &outputlen, &at(mat, i, layer - i), 1);
+            } else if (mode == 0) {
+                EVP_EncodeUpdate(en, msg, &outputlen, &at(mat, i, layer - i), 1);
+            }
+            at(mat, i, layer - i) = msg[0]; 
+        }
+    }
 }
 
 void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b) multiple with Mat B (b*c)
