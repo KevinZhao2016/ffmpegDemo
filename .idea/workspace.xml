@@ -11,10 +11,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ff4ba320-34d0-4ff8-a816-f34eb67e1ccd" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/framecrypto.cpp.o" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/framecrypto.cpp" afterPath="$PROJECT_DIR$/framecrypto.cpp" />
-    </list>
+    <list default="true" id="ff4ba320-34d0-4ff8-a816-f34eb67e1ccd" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -269,7 +266,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="182790000" />
+    <option name="totallyTimeSpent" value="182896000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1680" y="23" width="1920" height="1043" extended-state="0" />
