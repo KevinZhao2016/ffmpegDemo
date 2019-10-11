@@ -29,7 +29,8 @@ const int MAX_PADDING_LEN = 16;
 
 typedef uint8_t pixel;
 typedef int crypto_mode;
-void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, int encrypt_width);
+void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width);
+void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width);
 
 void dct_frame(AVFrame *frame, int height, int width);
 void stream_encrypt();

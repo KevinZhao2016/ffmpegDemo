@@ -69,17 +69,24 @@ public:
     void encryptFrame(const char *infile, const char *outfile) {
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
-        write_url_file(ic, oc, videoidx, audioidx, false);
+        write_url_file(ic, oc, videoidx, audioidx, false, 1);
         close_ffmpeg(ic, oc);
     }
 
-    void waterMark(const char *infile, const char *outfile,const string sign) {
+    void decryptFrame(const char *infile, const char *outfile) {
+        Open_In_fine(infile, videoidx, audioidx, ic);
+        Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
+        write_url_file(ic, oc, videoidx, audioidx, false, 0);
+        close_ffmpeg(ic, oc);
+    }
+
+    void waterMark(const char *infile, const char *outfile, const string sign) {
         sig.size = base64.Decode(sign.c_str(), sig.message);
         sig.message[sig.size++] = 0xaa; //结束符
         cout << base64.Encode(sig.message, sig.size) << endl;
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
-        write_url_file(ic, oc, videoidx, audioidx, true);
+        write_url_file(ic, oc, videoidx, audioidx, true, -1);
         close_ffmpeg(ic, oc);
     }
 
@@ -92,11 +99,23 @@ public:
     }
 };
 
+
+
 int main() {
     Mpeg mpeg = Mpeg();
     Base64 base64 = Base64();
+//    ZUCTest();
+//    Crypto crypto = Crypto();
+//    crypto.initZUC((unsigned char *)"Tsutsukakushi tsukiko",(unsigned char *)"Azuki azusa");
+//    int outputlen = 0;
+//    unsigned char msg1[8],msg2[8],out[8];
+//    EVP_EncryptUpdate(crypto.strong_en, msg1, &outputlen, (unsigned char *)"aaaaaaaa", 8);
+//    cout << EVP_EncryptFinal_ex(crypto.strong_en,out,&outputlen) << endl;
+//    EVP_DecryptUpdate(crypto.strong_en, msg2, &outputlen, msg1, 8);
+//    cout << msg2 << endl;
 //    test();
     mpeg.encryptFrame("test.mp4", "test1.mp4");
+    mpeg.decryptFrame("test1.mp4", "test2.mp4");
 //    cout << mpeg.getSign("test.mp4",PRIVATE_KEY) << endl;
 //    mpeg.waterMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;

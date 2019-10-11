@@ -103,7 +103,7 @@ void Time_base(AVPacket *pkt, AVFormatContext *&ic, AVFormatContext *&oc) {
 
 void
 av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AVFormatContext *ic, AVFormatContext *oc,
-                       AVPacket *pkt, AVFrame *frame, bool watermark, int &count) {
+                       AVPacket *pkt, AVFrame *frame, bool watermark, int mode, int &count) {
     int height = ct->height, width = ct->width;
     int value = avcodec_send_packet(ct, pkt);
     //水印时找第一个非关键帧 count
@@ -124,8 +124,16 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
         }
         printf("receive frame %3d\n", ct->frame_number);
         if (!watermark && frame->key_frame) {
-            //加密关键帧
-            encrypt_frame(frame, height, width, height, frame->linesize[0]);
+            Crypto crypto = Crypto();
+            crypto.initZUC((unsigned char *)"Tsutsukakushi tsukiko",(unsigned char *)"Azuki azusa");
+            if (mode == 1) {
+                //加密关键帧
+                encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+            } else if (mode == 0) {
+                //解密
+                decrypt_frame(frame,  crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+            }
+
         }
 
         if (watermark && count == 0 && frame->key_frame == 1) { //找到第一个非关键帧，插入水印
@@ -272,7 +280,7 @@ void getPkt(AVFormatContext *ic, int &videoidx, int &audioidx) {
     avcodec_free_context(&pCodecCtx);
 }
 
-void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int &audioidx, bool watermark) {
+void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int &audioidx, bool watermark, int mode) {
     AVPacket *pkt = av_packet_alloc();
     AVFrame *frame = av_frame_alloc();
     enum AVCodecID codec_id = AV_CODEC_ID_H264;//解码编码
@@ -312,7 +320,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     int count = 0;
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
-            av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, count);
+            av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, mode, count);
             cout << "__________" << endl;
 //            cout << "pkt flag " << pkt->flags << endl;
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash

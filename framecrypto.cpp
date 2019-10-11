@@ -5,7 +5,6 @@
 float msk[8][8] = { {16,11,10,16,24,40,51,61},{12,12,14,19,26,58,60,55},{14,13,16,24,40,57,69,56},{14,17,22,29,51,87,80,62},{18,22,37,56,68,109,103,77},{24,35,55,64,81,104,113,92},{49,64,78,87,103,121,120,101},{72,92,95,98,112,100,103,99} };
 float pi = acos(-1.0);
 float A[8][8], At[8][8];
-EVP_CIPHER_CTX *strong_en = EVP_CIPHER_CTX_new(), *weak_en= EVP_CIPHER_CTX_new();
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -66,7 +65,7 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
     }
 }
 
-void dct_frame(float *mat, int __height, int __width, int mode) {
+void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int mode) {
     float res[8][8];
     float slice[8][8];
     uint8_t discrete_slice[8][8];
@@ -123,8 +122,8 @@ void dct_frame(float *mat, int __height, int __width, int mode) {
                 }
             }
 
-            stream_encrypt((uint8_t *)discrete_slice, strong_en, 8, 9, mode);
-            stream_encrypt((uint8_t *)discrete_slice, weak_en, 10, 10, mode);
+            stream_encrypt((uint8_t *)discrete_slice, strong_en, 9, 9, mode);
+            stream_encrypt((uint8_t *)discrete_slice, weak_en, 10, 11, mode);
             for (int ii = 0; ii < 8; ++ii) {
                 for (int jj = 0; jj < 8; ++jj) {
                     slice[ii][jj] = discrete_slice[ii][jj] + loss[ii][jj];
@@ -170,7 +169,7 @@ void idct_frame(float *mat, int __height, int __width) {
 
 }
 
-void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, int encrypt_width) {
+void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width) {
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[encrypt_height * encrypt_width];
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
@@ -180,22 +179,16 @@ void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, in
     initDctMat();
     //EVP_CIPHER_CTX* strong_en;
     //EVP_CIPHER_CTX* weak_en;
-    EVP_CIPHER_CTX_init(strong_en);
-    EVP_CIPHER_CTX_init(weak_en);
+//    EVP_CIPHER_CTX_init(strong_en);
+//    EVP_CIPHER_CTX_init(weak_en);
     const EVP_CIPHER *cipher_type;
     uint8_t *passkey, *passiv, *plaintxt;
     uint8_t *plaintext = nullptr;
     //uint8_t *strong_key, *weak_key;
-    unsigned char *strong_key = (unsigned char*) "Tsutsukakushi tsukiko";
-    unsigned char *weak_key = (unsigned char*) "Azuki azusa";
+//    unsigned char *strong_key = (unsigned char*) "Tsutsukakushi tsukiko";
+//    unsigned char *weak_key = (unsigned char*) "Azuki azusa";
 
-
-    uint8_t strong_iv[] = { 0x00 }, weak_iv[] = { 0x00 };
-    cipher_type = EVP_zuc();
-    EVP_EncryptInit_ex(strong_en, cipher_type, nullptr, strong_key, strong_iv);
-    EVP_EncryptInit_ex(weak_en, cipher_type, nullptr, weak_key, weak_iv);
-
-    dct_frame(precise_mat, encrypt_height, encrypt_width, MODE_ENCRYPT);
+    dct_frame(precise_mat, encrypt_height, encrypt_width, strong_en, weak_en, MODE_ENCRYPT);
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
 //#ifdef spy
@@ -208,51 +201,25 @@ void encrypt_frame(AVFrame *frame, int height, int width, int encrypt_height, in
          mat[i] = (uint8_t)precise_mat[i];
     }
 //#endif
-    EVP_CIPHER_CTX_cleanup(strong_en);
-    EVP_CIPHER_CTX_cleanup(weak_en);
+//    EVP_CIPHER_CTX_cleanup(strong_en);
+//    EVP_CIPHER_CTX_cleanup(weak_en);
     delete precise_mat;
 }
 
-void decrypt_frame(AVFrame *frame, int height, int width, int decrypt_height, int decrypt_width) {
+void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int decrypt_height, int decrypt_width) {
     uint8_t* mat = frame->data[0];
-    float* precise_mat = new float[encrypt_height * encrypt_width];
-    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
+    float* precise_mat = new float[decrypt_height * decrypt_width];
+    for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
         precise_mat[i] = (float) mat[i];
     }
-    //float A[8][8], At[8][8];
     initDctMat();
-    //EVP_CIPHER_CTX* strong_en;
-    //EVP_CIPHER_CTX* weak_en;
-    EVP_CIPHER_CTX_init(strong_en);
-    EVP_CIPHER_CTX_init(weak_en);
-    const EVP_CIPHER *cipher_type;
-    uint8_t *passkey, *passiv, *plaintxt;
-    uint8_t *plaintext = nullptr;
-    //uint8_t *strong_key, *weak_key;
-    unsigned char *strong_key = (unsigned char*) "Tsutsukakushi tsukiko";
-    unsigned char *weak_key = (unsigned char*) "Azuki azusa";
 
+    dct_frame(precise_mat, decrypt_height, decrypt_width, strong_en, weak_en, MODE_DECRYPT);
+    idct_frame(precise_mat, decrypt_height, decrypt_width);
 
-    uint8_t strong_iv[] = { 0x00 }, weak_iv[] = { 0x00 };
-    cipher_type = EVP_zuc();
-    //EVP_DecryptInit_ex(strong_en, cipher_type, nullptr, strong_);
-    EVP_DencryptInit_ex(strong_en, cipher_type, nullptr, strong_key, strong_iv);
-    EVP_DecryptInit_ex(weak_en, cipher_type, nullptr, weak_key, weak_iv);
-
-    dct_frame(precise_mat, encrypt_height, encrypt_width, MODE_DECRYPT);
-    idct_frame(precise_mat, encrypt_height, encrypt_width);
-
-    static int count;
-    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
-#ifdef spy
-         if (fabs(mat[i] - precise_mat[i]) > 64) {
-             printf("Answer loss %d: %d %d\n", ++count, (int)mat[i], (int)precise_mat[i]);
-         }
-#endif
+    for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
          mat[i] = (uint8_t)precise_mat[i];
     }
-//#endif
-    EVP_CIPHER_CTX_cleanup(strong_en);
-    EVP_CIPHER_CTX_cleanup(weak_en);
+
     delete precise_mat;
 }

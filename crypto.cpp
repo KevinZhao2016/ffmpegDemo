@@ -17,6 +17,7 @@ using namespace std;
 class Crypto {
 public:
     EVP_MD_CTX *mdctx;
+    EVP_CIPHER_CTX *strong_en, *weak_en;
     EC_KEY *Key;
 
     Crypto() {
@@ -141,6 +142,8 @@ public:
         EVP_SignInit_ex(mdctx, EVP_sm3(), nullptr);
     }
 
+
+
     void UpdateSignBySM2(int64_t *msg, int len) {
         cout << "SM2 update:" << " ";
 //        cout << EVP_DigestUpdate(this->mdctx, msg, len) << endl;
@@ -166,6 +169,14 @@ public:
         EVP_PKEY_set1_EC_KEY(evpkey, this->Key);
         res = EVP_VerifyFinal(this->mdctx, sig, size, evpkey);
         return res;
+    }
+
+    void initZUC(unsigned char *strong_key, unsigned char *weak_key) {
+        uint8_t strong_iv[] = {0x00}, weak_iv[] = {0x00};
+        this->strong_en = EVP_CIPHER_CTX_new();
+        this->weak_en = EVP_CIPHER_CTX_new();
+        EVP_EncryptInit_ex(strong_en, EVP_zuc(), nullptr, strong_key, strong_iv);
+        EVP_EncryptInit_ex(weak_en, EVP_zuc(), nullptr, weak_key, weak_iv);
     }
 
     void printError() {
