@@ -4,11 +4,11 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/kevin/Desktop/ffmpegDemo/crypto.cpp" "/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/crypto.cpp.o"
-  "/Users/kevin/Desktop/ffmpegDemo/framecrypto.cpp" "/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/framecrypto.cpp.o"
-  "/Users/kevin/Desktop/ffmpegDemo/mpeg.cpp" "/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/mpeg.cpp.o"
+  "D:/Working/Reseaching/something/crypto.cpp" "D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/crypto.cpp.obj"
+  "D:/Working/Reseaching/something/framecrypto.cpp" "D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/framecrypto.cpp.obj"
+  "D:/Working/Reseaching/something/mpeg.cpp" "D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/ffmpegDemo.dir/mpeg.cpp.obj"
   )
-set(CMAKE_CXX_COMPILER_ID "AppleClang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH

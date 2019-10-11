@@ -1,9 +1,11 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/ffmpegDemo.dir/crypto.cpp.o"
-  "CMakeFiles/ffmpegDemo.dir/mpeg.cpp.o"
-  "CMakeFiles/ffmpegDemo.dir/framecrypto.cpp.o"
+  "CMakeFiles/ffmpegDemo.dir/crypto.cpp.obj"
+  "CMakeFiles/ffmpegDemo.dir/framecrypto.cpp.obj"
+  "CMakeFiles/ffmpegDemo.dir/mpeg.cpp.obj"
+  "ffmpegDemo.exe"
+  "ffmpegDemo.exe.manifest"
   "ffmpegDemo.pdb"
-  "ffmpegDemo"
+  "libffmpegDemo.dll.a"
 )
 
 # Per-language clean rules from dependency scanning.

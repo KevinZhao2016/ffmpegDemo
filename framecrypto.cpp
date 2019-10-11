@@ -5,6 +5,11 @@
 float msk[8][8] = { {16,11,10,16,24,40,51,61},{12,12,14,19,26,58,60,55},{14,13,16,24,40,57,69,56},{14,17,22,29,51,87,80,62},{18,22,37,56,68,109,103,77},{24,35,55,64,81,104,113,92},{49,64,78,87,103,121,120,101},{72,92,95,98,112,100,103,99} };
 float pi = acos(-1.0);
 float A[8][8], At[8][8];
+pixel strong_plaintext[1 << 23], strong_ciphertext[1 << 23];
+pixel weak_plaintext[1 << 23], weak_ciphertext[1 << 23];
+int strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
+int weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
+
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -26,10 +31,36 @@ void initDctMat()  //计算8x8块的离散余弦变换系数
     //cin >> a;
 }
 
-void stream_encrypt(uint8_t* mat, EVP_CIPHER_CTX *en, int layer_start, int layer_end, crypto_mode mode) {
+void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pixel *plaintext, int *plain_len, crypto_mode mode = 0) {
     /*
      * if mode is 0, encode; if mode is 1, decode.
      */
+    if (mode == 0) {
+        if (EVP_EncryptUpdate(ctx, ciphertext, cipher_len, plaintext, *plain_len) != 1) {
+            cout << "Panic: Encrypt failed" << endl;
+            return;
+        }
+        if (EVP_EncryptFinal_ex(ctx, ciphertext + *cipher_len, cipher_len) != 1) {
+            cout << "Panic: Encrypt failed" << endl;
+            return;
+        }
+        //strong_ciphertext_pointer = *cipher_len;
+    } else if (mode == 1) {
+        if (EVP_DecryptUpdate(ctx, plaintext, plain_len, ciphertext, *cipher_len) != 1) {
+            cout << "Panic: Decrypt failed" << endl;
+            return;
+        }
+        if (EVP_DecryptFinal_ex(ctx, plaintext + *plain_len, plain_len) != 1) {
+            cout << "Panic: Decrypt failed" << endl;
+            return;
+        }
+        //strong_ciphertext_pointer = *plain_len;
+    } else {
+        printf("Panic: mode is %d\n", mode);
+        //cout << "panic" << endl;
+    }
+
+    /*
     int linelen = 8;
     unsigned char msg[8];
     int outputlen = 0;
@@ -51,6 +82,7 @@ void stream_encrypt(uint8_t* mat, EVP_CIPHER_CTX *en, int layer_start, int layer
             at(mat, i, layer - i) = msg[0]; 
         }
     }
+    */
 }
 
 void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b) multiple with Mat B (b*c)
@@ -65,7 +97,10 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
     }
 }
 
-void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int mode) {
+void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nullptr, EVP_CIPHER_CTX *weak_en = nullptr, int mode = 0) {
+    /*
+     * @declytped
+     */
     float res[8][8];
     float slice[8][8];
     uint8_t discrete_slice[8][8];
@@ -118,10 +153,29 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en,
                     }
 #endif
                     discrete_slice[ii][jj] = (uint8_t)floor(slice[ii][jj]);
-                    loss[ii][jj] = slice[ii][jj] - discrete_slice[ii][jj];
+                    loss[ii][jj] = slice[ii][jj] - (float)discrete_slice[ii][jj];
                 }
             }
 
+            /*
+             * Edited by occulticplus at 10/11/2019.
+             */
+            for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
+                for (int ii = layer; ii >= 0; ii--) {
+
+                    if (ii >= 8 || layer - ii >= 8) continue;
+                    strong_plaintext[strong_plaintext_pointer++] = discrete_slice[ii][layer - ii];
+                }
+            }
+            for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
+                for (int ii = layer; ii >= 0; ii--) {
+
+                    if (ii >= 8 || layer - ii >= 8) continue;
+                    weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii];
+                }
+            }
+
+            /*
             stream_encrypt((uint8_t *)discrete_slice, strong_en, 9, 9, mode);
             stream_encrypt((uint8_t *)discrete_slice, weak_en, 10, 11, mode);
             for (int ii = 0; ii < 8; ++ii) {
@@ -129,12 +183,13 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en,
                     slice[ii][jj] = discrete_slice[ii][jj] + loss[ii][jj];
                 }
             }
-
+            */
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
-                    at(mat, i + ii, j + jj) = slice[ii][jj];
+                    at(mat, i + ii, j + jj) = loss[ii][jj];
                 }
             }
+
         }
     }
 
@@ -146,8 +201,30 @@ void idct_frame(float *mat, int __height, int __width) {
 
     int height = (__height >> 3) << 3, width = (__width >> 3) << 3;
     int linelen = __width;
+    int ciphertext_counter = 0;
     for (int i = 0; i < width; i += 8) {
         for (int j = 0; j < height; j += 8) {
+
+            // put the ciphertext back to pixels.
+            for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
+                for (int ii = layer; ii >= 0; ii--) {
+                    if (ii >= 8 || layer - ii >= 8) continue;
+                    if (ciphertext_counter >= strong_ciphertext_pointer) {
+                        cout << "panic" << endl;
+                    }
+                    at(mat, ii, layer - ii) += strong_ciphertext[ciphertext_counter++];
+                }
+            }
+            for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
+                for (int ii = layer; ii >= 0; ii--) {
+                    if (ii >= 8 || layer - ii >= 8) continue;
+                    if (ciphertext_counter >= weak_ciphertext_pointer) {
+                        cout << "panic" << endl;
+                    }
+                    at(mat, ii, layer - ii) += weak_ciphertext[ciphertext_counter++];
+                }
+            }
+
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj) * msk[ii][jj];
@@ -189,6 +266,10 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 //    unsigned char *weak_key = (unsigned char*) "Azuki azusa";
 
     dct_frame(precise_mat, encrypt_height, encrypt_width, strong_en, weak_en, MODE_ENCRYPT);
+
+    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
+    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
+
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
 //#ifdef spy
@@ -203,7 +284,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 //#endif
 //    EVP_CIPHER_CTX_cleanup(strong_en);
 //    EVP_CIPHER_CTX_cleanup(weak_en);
-    delete precise_mat;
+    delete []precise_mat;
 }
 
 void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int decrypt_height, int decrypt_width) {
@@ -215,6 +296,11 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
     initDctMat();
 
     dct_frame(precise_mat, decrypt_height, decrypt_width, strong_en, weak_en, MODE_DECRYPT);
+
+    /* Attention: when decrypt, we should swap the order of the params, because dct/idct always regard input as plaintext.*/
+    stream_encrypt(strong_en, strong_plaintext, &strong_plaintext_pointer, strong_ciphertext, &strong_ciphertext_pointer, MODE_DECRYPT);
+    stream_encrypt(weak_en, weak_plaintext, &weak_plaintext_pointer, weak_ciphertext, &weak_ciphertext_pointer, MODE_DECRYPT);
+
     idct_frame(precise_mat, decrypt_height, decrypt_width);
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
