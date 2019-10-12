@@ -21,14 +21,14 @@ extern "C" {
 #include <cstdio>
 #include <fstream>
 
-#define at(m, x, y) m[(y) * (linelen) + (x)]
+#define at(m, x, y) m[(x) * (linelen) + (y)]
 #define MODE_ENCRYPT 0
 #define MODE_DECRYPT 1
 
-#define STRONG_LAYER_START 17
-#define STRONG_LAYER_END 17
-#define WEAK_LAYER_START 17
-#define WEAK_LAYER_END 17
+#define STRONG_LAYER_START 2
+#define STRONG_LAYER_END 5
+#define WEAK_LAYER_START 10
+#define WEAK_LAYER_END 10
 
 using namespace std;
 
@@ -43,6 +43,6 @@ void dct_frame(AVFrame *frame, int height, int width);
 void stream_encrypt();
 void idct_frame(AVFrame *frame, int height, int width);
 
-
+void mat_mul(float *A, float *B, float *res, int a, int b, int c);
 
 #endif //FRAME_CRYPTO.h

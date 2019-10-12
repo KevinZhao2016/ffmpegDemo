@@ -99,12 +99,25 @@ public:
     }
 };
 
+void testMulti() {
+    float A[] = {1, 2, 3, 2, 1, 3, 3, 2, 1};
+    float B[] = {-1, -2, -3, -2, -3, -1, -3, -1, -2};
+    float C[10];
+    mat_mul(A, B, C, 3, 3, 3);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            cout << C[i * 3 + j] << ' ';
+        }
+        cout << endl;
+    }
+}
 
 int main() {
+
     Mpeg mpeg = Mpeg();
     Base64 base64 = Base64();
-    mpeg.encryptFrame("test.mp4", "test1.mp4");
-//    mpeg.decryptFrame("test1.mp4", "test2.mp4");
+//    mpeg.encryptFrame("test.mp4", "test1.mp4");
+    mpeg.decryptFrame("test1.mp4", "test2.mp4");
 //    cout << mpeg.getSign("test.mp4",PRIVATE_KEY) << endl;
 //    mpeg.waterMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;

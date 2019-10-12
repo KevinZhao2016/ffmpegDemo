@@ -1,7 +1,7 @@
 #include "framecrypto.h"
 
 #define debug2
-//#define debugloss
+#define debugloss
 
 float msk[8][8] = { {16,11,10,16,24,40,51,61},{12,12,14,19,26,58,60,55},{14,13,16,24,40,57,69,56},{14,17,22,29,51,87,80,62},{18,22,37,56,68,109,103,77},{24,35,55,64,81,104,113,92},{49,64,78,87,103,121,120,101},{72,92,95,98,112,100,103,99} };
 float pi = acos(-1.0);
@@ -14,27 +14,30 @@ static int counter = 0;
 #ifdef debugloss
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
 fstream mat_bef, mat_aft;
+fstream dct_recover;
 #endif
-//
-//void initFstream() {
-//    if (counter > 1) return;
-//    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
-//    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
-//    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
-//    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
-//    mat_bef.open("mat_bef.txt", ios::app|ios::out);
-//    mat_aft.open("mat_aft.txt", ios::app|ios::out);
-//}
-//
-//void closeFstream() {
-//    if (counter > 1) return;
-//    plain_bef.close();
-//    plain_aft.close();
-//    cipher_bef.close();
-//    cipher_aft.close();
-//    mat_aft.close();
-//    mat_bef.close();
-//}
+
+void initFstream() {
+    if (counter > 1) return;
+    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+    mat_bef.open("mat_bef.txt", ios::app|ios::out);
+    mat_aft.open("mat_aft.txt", ios::app|ios::out);
+    dct_recover.open("dct_recover.txt", ios::app|ios::out);
+}
+
+void closeFstream() {
+    if (counter > 1) return;
+    plain_bef.close();
+    plain_aft.close();
+    cipher_bef.close();
+    cipher_aft.close();
+    mat_aft.close();
+    mat_bef.close();
+    dct_recover.close();
+}
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -147,7 +150,7 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
         for (int j = 0; j < c; j++) {
             at(res, i, j) = 0;
             for (int k = 0; k < b; k++) {
-                at(res, i, j) += at(A, k, i) * at(B, j, k);
+                at(res, i, j) += at(A, i, k) * at(B, k, j);
             }
         }
     }
@@ -165,8 +168,8 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
 
     int height = (__height >> 3) << 3, width = (__width >> 3) << 3;
     int linelen = __width;
-    for (int i = 0; i < width; i += 8) {
-        for (int j = 0; j < height; j += 8) {
+    for (int i = 0; i < height; i += 8) {
+        for (int j = 0; j < width; j += 8) {
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj);
@@ -207,7 +210,7 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
 
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
-                    slice[ii][jj] /= msk[ii][jj];
+                    //slice[ii][jj] /= msk[ii][jj];
 #ifdef debug
                     if (slice[ii][jj] < 8 && fabs(slice[ii][jj] - at(mat, i + ii, j + jj)) > 64) {
                         static int count2 = 0;
@@ -219,6 +222,12 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
                 }
             }
 
+            for (int ii = 0; ii < 8; ii++) {
+                for (int jj = 0; jj < 8; jj++) {
+                    at(mat, i + ii, j + jj) = slice[ii][jj];
+                }
+            }
+
             /*
              * Edited by occulticplus at 10/11/2019.
              */
@@ -227,6 +236,7 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
 
                     if (ii >= 8 || layer - ii >= 8) continue;
                     strong_plaintext[strong_plaintext_pointer++] = discrete_slice[ii][layer - ii];
+                    at(mat, i + ii, j + layer - ii) -= discrete_slice[ii][layer - ii];
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
@@ -234,23 +244,10 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
 
                     if (ii >= 8 || layer - ii >= 8) continue;
                     weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii];
+                    at(mat, i + ii, j + layer - ii) -= discrete_slice[ii][layer - ii];
                 }
             }
 
-            /*
-            stream_encrypt((uint8_t *)discrete_slice, strong_en, 9, 9, mode);
-            stream_encrypt((uint8_t *)discrete_slice, weak_en, 10, 11, mode);
-            for (int ii = 0; ii < 8; ++ii) {
-                for (int jj = 0; jj < 8; ++jj) {
-                    slice[ii][jj] = discrete_slice[ii][jj] + loss[ii][jj];
-                }
-            }
-            */
-            for (int ii = 0; ii < 8; ii++) {
-                for (int jj = 0; jj < 8; jj++) {
-                    at(mat, i + ii, j + jj) = loss[ii][jj];
-                }
-            }
 
         }
     }
@@ -264,8 +261,8 @@ void idct_frame(float *mat, int __height, int __width) {
     int height = (__height >> 3) << 3, width = (__width >> 3) << 3;
     int linelen = __width;
     int ciphertext_counter = 0;
-    for (int i = 0; i < width; i += 8) {
-        for (int j = 0; j < height; j += 8) {
+    for (int i = 0; i < height; i += 8) {
+        for (int j = 0; j < width; j += 8) {
 
             // put the ciphertext back to pixels.
             for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
@@ -289,7 +286,7 @@ void idct_frame(float *mat, int __height, int __width) {
 
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
-                    slice[ii][jj] = at(mat, i + ii, j + jj) * msk[ii][jj];
+                    slice[ii][jj] = at(mat, i + ii, j + jj);
 #ifdef debugloss
                     if (counter <= 2) mat_aft << (float)at(mat, i + ii, j + jj) << ' ';
 #endif
@@ -304,7 +301,13 @@ void idct_frame(float *mat, int __height, int __width) {
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
                     at(mat, i + ii, j + jj) = floor(slice[ii][jj]);
+#ifdef debugloss
+                    if (counter <= 2) dct_recover << (float)slice[ii][jj] << ' ';
+#endif
                 }
+#ifdef debugloss
+                if (counter <= 2) dct_recover << endl;
+#endif
             }
             //stream_encrypt();
         }
@@ -338,8 +341,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
     dct_frame(precise_mat, encrypt_height, encrypt_width, strong_en, weak_en, MODE_ENCRYPT);
 
-//    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
-//    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
+    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
+    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
 
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
@@ -358,6 +361,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
 #ifdef debugloss
     closeFstream();
+    counter++;
 #endif
     delete []precise_mat;
 }
@@ -390,6 +394,7 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
 #ifdef debugloss
     closeFstream();
+    counter++;
 #endif
     delete precise_mat;
 }
