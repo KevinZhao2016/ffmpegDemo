@@ -171,7 +171,7 @@ public:
     }
 
     void initZUC(unsigned char *strong_key, unsigned char *weak_key) {
-        uint8_t strong_iv[] = {0x00}, weak_iv[] = {0x00};
+        const unsigned char *strong_iv = (unsigned char *) "strong_iv", *weak_iv = (unsigned char *) "weak_iv";
         this->strong_en = EVP_CIPHER_CTX_new();
         this->weak_en = EVP_CIPHER_CTX_new();
         EVP_EncryptInit_ex(strong_en, EVP_zuc(), nullptr, strong_key, strong_iv);
