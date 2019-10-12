@@ -107,16 +107,16 @@ void test() {
     uchar plaintext[maxsize] = "aaaaaaaaaaaaaaaa";
     uchar msg[maxsize];
 
-    uchar loop[] = { 114, 51, 4, 191, 98, 10, 89, 33, 64 };
+    uchar loop[] = {114, 51, 4, 191, 98, 10, 89, 33, 64};
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
     OPENSSL_config(NULL);
-    uchar* key = (uchar *) "Inaba Himeko";
-    uchar* text = (uchar *) "Araragi Koyomi, Karen and Tsukika";
-    EVP_CIPHER_CTX* en = EVP_CIPHER_CTX_new();
+    uchar *key = (uchar *) "Inaba Himeko";
+    uchar *text = (uchar *) "Araragi Koyomi, Karen and Tsukika";
+    EVP_CIPHER_CTX *en = EVP_CIPHER_CTX_new();
 //    EVP_CIPHER_CTX_init(en);
-    uchar* iv = (uchar *) "Otonashi Yuzuru";
-    const EVP_CIPHER* encode_type = EVP_zuc();
+    uchar *iv = (uchar *) "Otonashi Yuzuru";
+    const EVP_CIPHER *encode_type = EVP_zuc();
     EVP_EncryptInit_ex(en, encode_type, nullptr, key, iv);
 
 #ifdef encrypt
@@ -125,18 +125,18 @@ void test() {
 //		plaintext[i] = loop[i % 7];
 //		cout << (int)plaintext[i] << endl;
 //	}
-	freopen("ciphertext.txt", "w", stdout);
+    freopen("ciphertext.txt", "w", stdout);
 
 
-	int msglen = 0;
-	if (EVP_EncryptUpdate(en, msg, &msglen, plaintext, 16) != 1) {
-		cerr << "Something went wrong" << endl;
-	}
-	cerr << msglen << endl;
-	if (1 != EVP_EncryptFinal_ex(en, msg + msglen, &msglen)) {
-		cerr << "Something went wrong" << endl;
-	}
-	cerr << msglen << endl;
+    int msglen = 0;
+    if (EVP_EncryptUpdate(en, msg, &msglen, plaintext, 16) != 1) {
+        cerr << "Something went wrong" << endl;
+    }
+    cerr << msglen << endl;
+    if (1 != EVP_EncryptFinal_ex(en, msg + msglen, &msglen)) {
+        cerr << "Something went wrong" << endl;
+    }
+    cerr << msglen << endl;
 
 #else
     freopen("ciphertext.txt", "r", stdin);
@@ -162,7 +162,7 @@ void test() {
     EVP_CIPHER_CTX_cleanup(en);
 
     for (int i = 0; i < maxsize - 16; i++) {
-        int k = (unsigned int)msg[i];
+        int k = (unsigned int) msg[i];
         printf("%d\n", k);
         //cout << k << endl;
     }
@@ -175,14 +175,19 @@ int main() {
 //    ZUCTest();
 //    Crypto crypto1 = Crypto();
 //    Crypto crypto2 = Crypto();
-//    crypto1.initZUC((unsigned char *)"Tsutsukakushi tsukiko",(unsigned char *)"Azuki azusa");
+//    crypto1.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
 //    crypto2.initZUC((unsigned char *)"Tsutsukakushi tsukiko",(unsigned char *)"Azuki azusa");
-//    int outputlen = 0;
-//    unsigned char msg1[17] = {0},msg2[17],out[17];
-//    EVP_EncryptUpdate(crypto1.strong_en, msg1, &outputlen, (unsigned char *)"aaaaaaaaaaaaaaaa", 16);
-//    EVP_EncryptFinal_ex(crypto1.strong_en,msg1+outputlen,&outputlen);
-//
-//    cout << (int)msg1[1] << endl;
+    int outputlen = 0;
+    unsigned char msg1[17] = {0}, msg2[17], out[17];
+    EVP_CIPHER_CTX *en = EVP_CIPHER_CTX_new();
+    typedef uint8_t uchar;
+    uchar *iv = (uchar *) "Otonashi Yuzuru";
+    const EVP_CIPHER *encode_type = EVP_zuc();
+    EVP_EncryptInit_ex(en, encode_type, nullptr, key, iv);
+    EVP_EncryptUpdate(crypto1.strong_en, msg1, &outputlen, (unsigned char *) "aaaaaaaaaaaaaaaa", 16);
+    EVP_EncryptFinal_ex(crypto1.strong_en, msg1 + outputlen, &outputlen);
+    cout << (int) msg1[1] << endl;
+
 //    cout << ((int)msg1[1]^0xaa) << endl;
 //    msg1[1] = 0xaa;
 //    EVP_DecryptUpdate(crypto2.strong_en, msg2, &outputlen, msg1, 16);
