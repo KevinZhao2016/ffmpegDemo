@@ -1,3 +1,0 @@
-D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/ffmpegDemo.dir
-D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/Working/Reseaching/something/cmake-build-debug/CMakeFiles/rebuild_cache.dir

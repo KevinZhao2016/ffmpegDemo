@@ -1,1 +1,0 @@
- -L/usr/local/Cellar/ffmpeg/4.1.4_2/lib -lavcodec -lavdevice -lavfilter -lavformat -lavresample -lavutil -lpostproc -lswresample -lswscale -lssl -lcrypto -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 

@@ -17,5 +17,5 @@ typedef struct signature {
     int size = 0;
 } Signature;
 Signature sig = Signature();
-
+pair<string,string> zucKey;
 #endif //FFMPEGDEMO_GLOBAL_H

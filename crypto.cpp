@@ -2,6 +2,7 @@
 // Created by KevinZhao on 2019/9/24.
 //
 #include <iostream>
+#include <ctime>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -143,10 +144,8 @@ public:
     }
 
 
-
     void UpdateSignBySM2(int64_t *msg, int len) {
         cout << "SM2 update:" << " ";
-//        cout << EVP_DigestUpdate(this->mdctx, msg, len) << endl;
         cout << EVP_DigestUpdate(mdctx, msg, sizeof(msg)) << endl;
     }
 
@@ -177,6 +176,25 @@ public:
         this->weak_en = EVP_CIPHER_CTX_new();
         EVP_EncryptInit_ex(strong_en, EVP_zuc(), nullptr, strong_key, strong_iv);
         EVP_EncryptInit_ex(weak_en, EVP_zuc(), nullptr, weak_key, weak_iv);
+    }
+
+    pair<string, string> randKey() {
+        string strong_key, weak_key;
+        const int SIZE_CHAR = 10; //生成10 + 1位C Style字符串
+        const unsigned char CCH[] = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+        srand((unsigned) time(nullptr));
+        unsigned char ch[SIZE_CHAR + 1] = {0};
+        for (int i = 0; i < SIZE_CHAR; ++i) {
+            int x = rand() / (RAND_MAX / (sizeof(CCH) - 1));
+            ch[i] = CCH[x];
+        }
+        strong_key = (char *)ch;
+        for (int i = 0; i < SIZE_CHAR; ++i) {
+            int x = rand() / (RAND_MAX / (sizeof(CCH) - 1));
+            ch[i] = CCH[x];
+        }
+        weak_key = (char *)ch;
+        return pair<string, string>(strong_key, weak_key);
     }
 
     void printError() {

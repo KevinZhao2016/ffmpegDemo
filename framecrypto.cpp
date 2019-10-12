@@ -209,18 +209,18 @@ void idct_frame(float *mat, int __height, int __width) {
             for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    if (ciphertext_counter >= strong_ciphertext_pointer) {
-                        cout << "panic" << endl;
-                    }
+//                    if (ciphertext_counter >= strong_ciphertext_pointer) {
+//                        cout << "panic" << endl;
+//                    }
                     at(mat, ii, layer - ii) += strong_ciphertext[ciphertext_counter++];
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    if (ciphertext_counter >= weak_ciphertext_pointer) {
-                        cout << "panic" << endl;
-                    }
+//                    if (ciphertext_counter >= weak_ciphertext_pointer) {
+//                        cout << "panic" << endl;
+//                    }
                     at(mat, ii, layer - ii) += weak_ciphertext[ciphertext_counter++];
                 }
             }
@@ -238,12 +238,9 @@ void idct_frame(float *mat, int __height, int __width) {
                     at(mat, i + ii, j + jj) = floor(slice[ii][jj]);
                 }
             }
-
             //stream_encrypt();
         }
     }
-
-
 }
 
 void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width) {

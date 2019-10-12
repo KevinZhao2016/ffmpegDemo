@@ -63,10 +63,3 @@ void getMark(AVFrame *frame) {
     }
 }
 
-void test() {
-    char str[9];
-    unsigned char num = 48;
-    char2bin(num, str);
-    cout << str << endl;
-    cout << getNum1(str) << endl;
-}
