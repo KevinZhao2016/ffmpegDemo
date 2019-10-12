@@ -18,6 +18,8 @@ extern "C" {
 #include <openssl/gmapi.h>
 #include <openssl/bio.h>
 #include <iostream>
+#include <cstdio>
+#include <fstream>
 
 #define at(m, x, y) m[(y) * (linelen) + (x)]
 #define MODE_ENCRYPT 0

@@ -1,6 +1,7 @@
 #include "FrameCrypto.h"
 
 #define debug2
+#define debugloss
 
 float msk[8][8] = { {16,11,10,16,24,40,51,61},{12,12,14,19,26,58,60,55},{14,13,16,24,40,57,69,56},{14,17,22,29,51,87,80,62},{18,22,37,56,68,109,103,77},{24,35,55,64,81,104,113,92},{49,64,78,87,103,121,120,101},{72,92,95,98,112,100,103,99} };
 float pi = acos(-1.0);
@@ -10,6 +11,23 @@ pixel weak_plaintext[1 << 23], weak_ciphertext[1 << 23];
 int strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
 int weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
 
+#ifdef debugloss
+fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
+#endif
+
+void initFstream() {
+    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+}
+
+void closeFstream() {
+    plain_bef.close();
+    plain_aft.close();
+    cipher_bef.close();
+    cipher_aft.close();
+}
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -35,25 +53,50 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
     /*
      * if mode is 0, encode; if mode is 1, decode.
      */
+    int rec = 0;
     if (mode == 0) {
+#ifdef debugloss
+        for (int i = 0; i < *plain_len; i++) {
+            plain_bef << (int)plaintext[i] << endl;
+        }
+#endif
         if (EVP_EncryptUpdate(ctx, ciphertext, cipher_len, plaintext, *plain_len) != 1) {
             cout << "Panic: Encrypt failed" << endl;
             return;
         }
+        rec = *cipher_len;
         if (EVP_EncryptFinal_ex(ctx, ciphertext + *cipher_len, cipher_len) != 1) {
             cout << "Panic: Encrypt failed" << endl;
             return;
         }
+        *cipher_len += rec;
+#ifdef debugloss
+        for (int i = 0; i < *cipher_len; i++) {
+            cipher_bef << (int)ciphertext[i] << endl;
+        }
+#endif
         //strong_ciphertext_pointer = *cipher_len;
     } else if (mode == 1) {
+#ifdef debugloss
+        for (int i = 0; i < *plain_len; i++) {
+            plain_aft << (int)plaintext[i] << endl;
+        }
+#endif
         if (EVP_DecryptUpdate(ctx, plaintext, plain_len, ciphertext, *cipher_len) != 1) {
             cout << "Panic: Decrypt failed" << endl;
             return;
         }
+        rec = *plain_len;
         if (EVP_DecryptFinal_ex(ctx, plaintext + *plain_len, plain_len) != 1) {
             cout << "Panic: Decrypt failed" << endl;
             return;
         }
+        *plain_len += rec;
+#ifdef debugloss
+        for (int i = 0; i < *cipher_len; i++) {
+            plain_aft << (int)ciphertext[i] << endl;
+        }
+#endif
         //strong_ciphertext_pointer = *plain_len;
     } else {
         printf("Panic: mode is %d\n", mode);
