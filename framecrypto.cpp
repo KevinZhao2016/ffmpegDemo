@@ -53,10 +53,15 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
     /*
      * if mode is 0, encode; if mode is 1, decode.
      */
+    static int counter = 0;
     int rec = 0;
+#ifdef debugloss
+    cerr << "(cipher_len, plain_len) is : " << *cipher_len << " " << *plain_len << endl;
+#endif
+
     if (mode == 0) {
 #ifdef debugloss
-        for (int i = 0; i < *plain_len; i++) {
+        for (int i = 0; i < *plain_len && counter < 1000; i++) {
             plain_bef << (int)plaintext[i] << endl;
         }
 #endif
@@ -71,14 +76,14 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         }
         *cipher_len += rec;
 #ifdef debugloss
-        for (int i = 0; i < *cipher_len; i++) {
+        for (int i = 0; i < *cipher_len && counter < 1000; i++) {
             cipher_bef << (int)ciphertext[i] << endl;
         }
 #endif
         //strong_ciphertext_pointer = *cipher_len;
     } else if (mode == 1) {
 #ifdef debugloss
-        for (int i = 0; i < *plain_len; i++) {
+        for (int i = 0; i < *plain_len && counter < 1000; i++) {
             plain_aft << (int)plaintext[i] << endl;
         }
 #endif
@@ -93,7 +98,7 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         }
         *plain_len += rec;
 #ifdef debugloss
-        for (int i = 0; i < *cipher_len; i++) {
+        for (int i = 0; i < *cipher_len && counter < 1000; i++) {
             plain_aft << (int)ciphertext[i] << endl;
         }
 #endif
@@ -287,6 +292,11 @@ void idct_frame(float *mat, int __height, int __width) {
 }
 
 void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width) {
+
+#ifdef debugloss
+    initFstream();
+#endif
+
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[encrypt_height * encrypt_width];
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
@@ -324,10 +334,19 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 //#endif
 //    EVP_CIPHER_CTX_cleanup(strong_en);
 //    EVP_CIPHER_CTX_cleanup(weak_en);
+
+#ifdef debugloss
+    closeFstream();
+#endif
     delete []precise_mat;
 }
 
 void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int decrypt_height, int decrypt_width) {
+
+#ifdef debugloss
+    initFstream();
+#endif
+
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[decrypt_height * decrypt_width];
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
@@ -347,5 +366,8 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
          mat[i] = (uint8_t)precise_mat[i];
     }
 
+#ifdef debugloss
+    closeFstream();
+#endif
     delete precise_mat;
 }
