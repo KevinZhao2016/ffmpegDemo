@@ -107,7 +107,7 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         printf("Panic: mode is %d\n", mode);
         //cout << "panic" << endl;
     }
-
+    counter++;
     /*
     int linelen = 8;
     unsigned char msg[8];
