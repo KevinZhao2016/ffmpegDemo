@@ -13,6 +13,7 @@ int weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
 static int counter = 0;
 #ifdef debugloss
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
+fstream mat_bef, mat_aft;
 #endif
 
 void initFstream() {
@@ -21,6 +22,7 @@ void initFstream() {
     plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
     cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
     cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+    mat_bef.open("mat_bef.txt", ios::app|ios::out);
 }
 
 void closeFstream() {
@@ -141,7 +143,7 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
         for (int j = 0; j < c; j++) {
             at(res, i, j) = 0;
             for (int k = 0; k < b; k++) {
-                at(res, i, j) += at(A, k, i) * at(B, j, k);
+                at(res, i, j) += at(A, i, k) * at(B, k, j);
             }
         }
     }
@@ -164,7 +166,13 @@ void dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en 
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj);
+#ifdef debugloss
+                    if (counter < 2) mat_bef << (float)at(mat, i + ii, j + jj) << ' ';
+#endif
                 }
+#ifdef debugloss
+                    if (counter < 2) mat_bef << endl;
+#endif
             }
             // dct = A * block * A^T
 #ifdef debug1
@@ -278,7 +286,13 @@ void idct_frame(float *mat, int __height, int __width) {
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj) * msk[ii][jj];
+#ifdef debugloss
+                    if (counter <= 2) mat_aft << (float)at(mat, i + ii, j + jj) << ' ';
+#endif
                 }
+#ifdef debugloss
+                    if (counter <= 2) mat_aft << endl;
+#endif
             }
             // idct = A^T * block(dct) * A
             mat_mul((float *)At, (float *)slice, (float *)res, 8, 8, 8);
