@@ -10,12 +10,13 @@ pixel strong_plaintext[1 << 23], strong_ciphertext[1 << 23];
 pixel weak_plaintext[1 << 23], weak_ciphertext[1 << 23];
 int strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
 int weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
-
+static int counter = 0;
 #ifdef debugloss
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
 #endif
 
 void initFstream() {
+    if (counter > 1) return;
     plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
     plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
     cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
@@ -23,6 +24,7 @@ void initFstream() {
 }
 
 void closeFstream() {
+    if (counter > 1) return;
     plain_bef.close();
     plain_aft.close();
     cipher_bef.close();
@@ -53,7 +55,7 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
     /*
      * if mode is 0, encode; if mode is 1, decode.
      */
-    static int counter = 0;
+
     int rec = 0;
 #ifdef debugloss
     cerr << "(cipher_len, plain_len) is : " << *cipher_len << " " << *plain_len << endl;
@@ -61,7 +63,7 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
 
     if (mode == 0) {
 #ifdef debugloss
-        for (int i = 0; i < *plain_len && counter < 1000; i++) {
+        for (int i = 0; i < *plain_len && counter < 2; i++) {
             plain_bef << (int)plaintext[i] << endl;
         }
 #endif
@@ -76,15 +78,15 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         }
         *cipher_len += rec;
 #ifdef debugloss
-        for (int i = 0; i < *cipher_len && counter < 1000; i++) {
+        for (int i = 0; i < *cipher_len && counter < 2; i++) {
             cipher_bef << (int)ciphertext[i] << endl;
         }
 #endif
         //strong_ciphertext_pointer = *cipher_len;
     } else if (mode == 1) {
 #ifdef debugloss
-        for (int i = 0; i < *plain_len && counter < 1000; i++) {
-            plain_aft << (int)plaintext[i] << endl;
+        for (int i = 0; i < *cipher_len && counter < 2; i++) {
+            cipher_aft << (int)ciphertext[i] << endl;
         }
 #endif
         if (EVP_DecryptUpdate(ctx, plaintext, plain_len, ciphertext, *cipher_len) != 1) {
@@ -98,8 +100,8 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         }
         *plain_len += rec;
 #ifdef debugloss
-        for (int i = 0; i < *cipher_len && counter < 1000; i++) {
-            plain_aft << (int)ciphertext[i] << endl;
+        for (int i = 0; i < *plain_len && counter < 2; i++) {
+            plain_aft << (int)plaintext[i] << endl;
         }
 #endif
         //strong_ciphertext_pointer = *plain_len;
