@@ -125,13 +125,13 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
         printf("receive frame %3d\n", ct->frame_number);
         if (!watermark && frame->key_frame) {
             Crypto crypto = Crypto();
-            crypto.initZUC((unsigned char *)"Tsutsukakushi tsukiko",(unsigned char *)"Azuki azusa");
+            crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
             if (mode == 1) {
                 //加密关键帧
                 encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
             } else if (mode == 0) {
                 //解密
-                decrypt_frame(frame,  crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+                decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
             }
 
         }
@@ -259,6 +259,7 @@ void getPkt(AVFormatContext *ic, int &videoidx, int &audioidx) {
     }
     AVDictionary *param = nullptr;
     av_dict_set(&param, "preset", "ultrafast", 0);
+//    av_dict_set(&param, "qp", "0", 0);
     av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
     if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
         printf("Could not open decodec\n");
@@ -297,6 +298,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     }
     AVDictionary *param = nullptr;
     av_dict_set(&param, "preset", "ultrafast", 0);
+//    av_dict_set(&param, "qp", "0", 0);
     av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
     if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
         printf("Could not open decodec\n");

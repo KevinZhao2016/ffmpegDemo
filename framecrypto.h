@@ -25,10 +25,10 @@ extern "C" {
 #define MODE_ENCRYPT 0
 #define MODE_DECRYPT 1
 
-#define STRONG_LAYER_START 8
-#define STRONG_LAYER_END 9
-#define WEAK_LAYER_START 10
-#define WEAK_LAYER_END 10
+#define STRONG_LAYER_START 17
+#define STRONG_LAYER_END 17
+#define WEAK_LAYER_START 17
+#define WEAK_LAYER_END 17
 
 using namespace std;
 

@@ -1,7 +1,7 @@
-#include "FrameCrypto.h"
+#include "framecrypto.h"
 
 #define debug2
-#define debugloss
+//#define debugloss
 
 float msk[8][8] = { {16,11,10,16,24,40,51,61},{12,12,14,19,26,58,60,55},{14,13,16,24,40,57,69,56},{14,17,22,29,51,87,80,62},{18,22,37,56,68,109,103,77},{24,35,55,64,81,104,113,92},{49,64,78,87,103,121,120,101},{72,92,95,98,112,100,103,99} };
 float pi = acos(-1.0);
@@ -15,23 +15,26 @@ static int counter = 0;
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
 fstream mat_bef, mat_aft;
 #endif
-
-void initFstream() {
-    if (counter > 1) return;
-    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
-    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
-    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
-    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
-    mat_bef.open("mat_bef.txt", ios::app|ios::out);
-}
-
-void closeFstream() {
-    if (counter > 1) return;
-    plain_bef.close();
-    plain_aft.close();
-    cipher_bef.close();
-    cipher_aft.close();
-}
+//
+//void initFstream() {
+//    if (counter > 1) return;
+//    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+//    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+//    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+//    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+//    mat_bef.open("mat_bef.txt", ios::app|ios::out);
+//    mat_aft.open("mat_aft.txt", ios::app|ios::out);
+//}
+//
+//void closeFstream() {
+//    if (counter > 1) return;
+//    plain_bef.close();
+//    plain_aft.close();
+//    cipher_bef.close();
+//    cipher_aft.close();
+//    mat_aft.close();
+//    mat_bef.close();
+//}
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -44,10 +47,10 @@ void initDctMat()  //计算8x8块的离散余弦变换系数
                 a = sqrt(2.0 / 8.0);
 
             At[j][i] = A[i][j] = a * cos((j + 0.5) * pi * i / 8);
-            cout << A[i][j] << ' ';
+//            cout << A[i][j] << ' ';
             //A.ptr<float>(i)[j] = a * cos((j + 0.5)*pi*i / 8);
         }
-        cout << endl;
+//        cout << endl;
     }
     //int a;
     //cin >> a;
@@ -70,12 +73,13 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         }
 #endif
         if (EVP_EncryptUpdate(ctx, ciphertext, cipher_len, plaintext, *plain_len) != 1) {
-            cout << "Panic: Encrypt failed" << endl;
+            cout << *plain_len << endl;
+            cout << "Panic: Encrypt Update failed" << endl;
             return;
         }
         rec = *cipher_len;
         if (EVP_EncryptFinal_ex(ctx, ciphertext + *cipher_len, cipher_len) != 1) {
-            cout << "Panic: Encrypt failed" << endl;
+            cout << "Panic: Encrypt Final failed" << endl;
             return;
         }
         *cipher_len += rec;
@@ -143,7 +147,7 @@ void mat_mul(float *A, float *B, float *res, int a, int b, int c) { // Mat A(a*b
         for (int j = 0; j < c; j++) {
             at(res, i, j) = 0;
             for (int k = 0; k < b; k++) {
-                at(res, i, j) += at(A, i, k) * at(B, k, j);
+                at(res, i, j) += at(A, k, i) * at(B, j, k);
             }
         }
     }
@@ -312,7 +316,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 #ifdef debugloss
     initFstream();
 #endif
-
+    strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
+    weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[encrypt_height * encrypt_width];
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
@@ -333,8 +338,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
     dct_frame(precise_mat, encrypt_height, encrypt_width, strong_en, weak_en, MODE_ENCRYPT);
 
-    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
-    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
+//    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
+//    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
 
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
@@ -362,7 +367,8 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 #ifdef debugloss
     initFstream();
 #endif
-
+    strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
+    weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[decrypt_height * decrypt_width];
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
