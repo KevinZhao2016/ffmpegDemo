@@ -22,11 +22,10 @@ extern "C" {
 #include <fstream>
 
 #define at(m, x, y) m[(x) * (linelen) + (y)]
-#define MODE_ENCRYPT 0
-#define MODE_DECRYPT 1
 
-#define STRONG_LAYER_START 2
-#define STRONG_LAYER_END 5
+
+#define STRONG_LAYER_START 5
+#define STRONG_LAYER_END 8
 #define WEAK_LAYER_START 10
 #define WEAK_LAYER_END 10
 
