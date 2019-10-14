@@ -3,6 +3,7 @@
 #include "signMark.cpp"
 #include "global.h"
 #include "framecrypto.h"
+#include <ctime>
 
 using namespace std;
 
@@ -124,13 +125,20 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
         }
         printf("receive frame %3d\n", ct->frame_number);
         if (!watermark && frame->key_frame) {
-            Crypto crypto = Crypto();
-            crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+
             if (mode == 1) {
+                Crypto crypto = Crypto();
+                crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
                 //加密关键帧
                 encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+
+                Crypto crypto1 = Crypto();
+                crypto1.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+                decrypt_frame(frame, crypto1.strong_en, crypto1.weak_en, height, frame->linesize[0]);
             } else if (mode == 0) {
                 //解密
+                Crypto crypto = Crypto();
+                crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
                 decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
             }
 
@@ -138,7 +146,11 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 
         if (watermark && count == 0 && frame->key_frame == 1) { //找到第一个非关键帧，插入水印
             count++;
+            clock_t start, ends;
+            start = clock();
             insertMark(frame);
+            ends = clock();
+            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);
@@ -180,10 +192,13 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
         printf("Could not open decodec\n");
         return -1;
     }
+    clock_t start, ends;
+    start = clock();
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
                 if (count > 1)
+
                     crypto.UpdateSignBySM2(&pkt->pts, pkt->size);
                 count++;
             }
@@ -197,9 +212,14 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
     }
     unsigned char *p = sig->message;
     if (if_verify) {
-        return crypto.finishVerify(p, sig->size, PUBLIC_KEY);
+        int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
+        ends = clock();
+        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
+        return ans;
     } else {
         sig->size = crypto.finishSigh(p, PRIVATE_KEY);
+        ends = clock();
+        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
         return -1;
     }
     avcodec_free_context(&pCodecCtx);
@@ -227,8 +247,12 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
         printf("receive frame %3d\n", ct->frame_number);
         if (frame->key_frame == 1) { //找到第一个关键帧，取出水印
             cout << "found!" << endl;
+            clock_t start, ends;
+            start = clock();
             getMark(frame);
             count++;
+            ends = clock();
+            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
             return;
 //            cout << (int)frame->data[2][71] << endl;
 //            for (i = 0; i < 75; ++i) {
