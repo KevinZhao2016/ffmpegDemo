@@ -116,6 +116,10 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
         //strong_ciphertext_pointer = *plain_len;
     } else {
         printf("Panic: mode is %d\n", mode);
+        int len = max(*plain_len, *cipher_len);
+        for (int i = 0; i < len; i++) {
+            plaintext[i] = ciphertext[i] = plaintext[i] ^ ciphertext[i];
+        }
         //cout << "panic" << endl;
     }
     counter++;
@@ -321,6 +325,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 #endif
     strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
     weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
+    memset(strong_ciphertext, 0, sizeof(strong_ciphertext));
+    memset(weak_ciphertext, 0, sizeof(weak_ciphertext));
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[encrypt_height * encrypt_width];
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
@@ -341,8 +347,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
     dct_frame(precise_mat, encrypt_height, encrypt_width, strong_en, weak_en, MODE_ENCRYPT);
 
-    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, MODE_ENCRYPT);
-    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, MODE_ENCRYPT);
+    stream_encrypt(strong_en, strong_ciphertext, &strong_ciphertext_pointer, strong_plaintext, &strong_plaintext_pointer, 2);
+    stream_encrypt(weak_en, weak_ciphertext, &weak_ciphertext_pointer, weak_plaintext, &weak_plaintext_pointer, 2);
 
     idct_frame(precise_mat, encrypt_height, encrypt_width);
     static int count;
@@ -373,6 +379,8 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 #endif
     strong_plaintext_pointer = 0, strong_ciphertext_pointer = 0;
     weak_plaintext_pointer = 0, weak_ciphertext_pointer = 0;
+    memset(strong_plaintext, 0, sizeof(strong_plaintext));
+    memset(weak_plaintext, 0, sizeof(weak_plaintext));
     uint8_t* mat = frame->data[0];
     float* precise_mat = new float[decrypt_height * decrypt_width];
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
@@ -383,8 +391,8 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
     dct_frame(precise_mat, decrypt_height, decrypt_width, strong_en, weak_en, MODE_DECRYPT);
 
     /* Attention: when decrypt, we should swap the order of the params, because dct/idct always regard input as plaintext.*/
-    stream_encrypt(strong_en, strong_plaintext, &strong_plaintext_pointer, strong_ciphertext, &strong_ciphertext_pointer, MODE_DECRYPT);
-    stream_encrypt(weak_en, weak_plaintext, &weak_plaintext_pointer, weak_ciphertext, &weak_ciphertext_pointer, MODE_DECRYPT);
+    stream_encrypt(strong_en, strong_plaintext, &strong_plaintext_pointer, strong_ciphertext, &strong_ciphertext_pointer, 2);
+    stream_encrypt(weak_en, weak_plaintext, &weak_plaintext_pointer, weak_ciphertext, &weak_ciphertext_pointer, 2);
 
     idct_frame(precise_mat, decrypt_height, decrypt_width);
 
