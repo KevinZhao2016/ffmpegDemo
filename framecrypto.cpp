@@ -464,7 +464,8 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
 #ifndef frequency_field
 
 #ifdef non_frequency_check
-    init_stream();
+    static int counter = 0;
+    if (counter++ < 2) init_stream();
 #endif
 
     uint8_t *mat = frame->data[0];
@@ -486,7 +487,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
 #ifdef non_frequency_check
-    close_stream();
+    if (counter < 3 ) close_stream();
 #endif
 
     delete[]precise_mat;
@@ -550,7 +551,8 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
 #ifndef frequency_field
 
 #ifdef non_frequency_check
-    init_stream();
+    static int counter = 0;
+    if (counter++ < 2) init_stream();
 #endif
 
     uint8_t *mat = frame->data[0];
@@ -572,7 +574,7 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
 #ifdef non_frequency_check
-    close_stream();
+    if (counter < 3) close_stream();
 #endif
 
     delete[]precise_mat;
