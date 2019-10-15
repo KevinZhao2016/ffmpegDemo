@@ -398,11 +398,11 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *wea
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
          mat[i] = (uint8_t)precise_mat[i];
+        closeFstream();
+        counter++;
+#endif
+        delete precise_mat;
+
     }
 
-#ifdef debugloss
-    closeFstream();
-    counter++;
-#endif
-    delete precise_mat;
-}
+#ifdef debugloss}
