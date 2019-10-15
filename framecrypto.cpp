@@ -352,7 +352,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
 #ifdef non_frequency_check
             linelen = 8;
             if (mat_encrypt_check_counter % 1000 == 0 && mode == MODE_ENCRYPT) {
-                estream << "check mat " << mat_encrypt_check_counter % 1000 << " :" << endl;
+                estream << "check mat " << mat_encrypt_check_counter / 1000 << " :" << endl;
                 estream << "deprecate pixels:" << endl;
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
@@ -369,7 +369,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
             }
             if (mat_decrypt_check_counter % 1000 == 0 && mode == MODE_DECRYPT) {
-                dstream << "check mat " << mat_decrypt_check_counter % 1000 << " :" << endl;
+                dstream << "check mat " << mat_decrypt_check_counter / 1000 << " :" << endl;
                 dstream << "deprecate pixels:" << endl;
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
@@ -424,7 +424,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
 #ifdef non_frequency_check
             linelen = 8;
             if (mat_encrypt_check_counter % 1000 == 1 && mode == MODE_ENCRYPT) {
-                estream << "check mat " << mat_encrypt_check_counter % 1000 << " :" << endl;
+                estream << "check mat " << mat_encrypt_check_counter / 1000 << " :" << endl;
                 estream << "deprecate pixels:" << endl;
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
@@ -441,7 +441,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
             }
             if (mat_decrypt_check_counter % 1000 == 1 && mode == MODE_DECRYPT) {
-                dstream << "check mat " << mat_decrypt_check_counter % 1000 << " :" << endl;
+                dstream << "check mat " << mat_decrypt_check_counter / 1000 << " :" << endl;
                 dstream << "deprecate pixels:" << endl;
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
