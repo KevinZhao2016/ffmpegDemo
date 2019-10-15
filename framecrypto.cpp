@@ -2,7 +2,7 @@
 
 #define debug2
 #define debugloss
-#define debugZUC
+#define debugZUC2
 #define non_frequency_check
 
 #ifdef debugZUC
@@ -315,8 +315,8 @@ void idct_frame(float *mat, int __height, int __width) {
 #ifdef non_frequency_check
 fstream estream, dstream;
 void init_stream(){
-    estream.open("encrypt_stream", ios::app|ios::out);
-    dstream.open("decrypt_stream", ios::app|ios::out);
+    estream.open("encrypt_stream", ios::out);
+    dstream.open("decrypt_stream", ios::out);
 }
 void close_stream() {
     estream.close();
@@ -410,6 +410,8 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 for (int i = 0; i < inlen; i++) {
                     outp_text[i] = inp_text[i];
                 }
+                if (mode == 2) mat_encrypt_check_counter++;
+                else mat_decrypt_check_counter++;
             }
 
             for (int ii = 0; ii < 8; ii++) {
