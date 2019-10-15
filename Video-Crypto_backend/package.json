@@ -1,7 +1,8 @@
 {
   "name": "video-crypto-backend",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
+  "gypfile": true,
   "scripts": {
     "start": "node ./bin/www"
   },
@@ -11,6 +12,7 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
+    "node-addon-api": "^1.7.1",
     "pug": "2.0.0-beta11"
   }
 }

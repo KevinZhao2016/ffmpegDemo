@@ -3,3 +3,4 @@ bin
 /cmake-build-debug/
 /.idea/
 /Video-Crypto_backend/.idea/
+/Video-Crypto_backend/node_modules/node-addon-api/package.json

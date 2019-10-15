@@ -311,9 +311,84 @@ void idct_frame(float *mat, int __height, int __width) {
     }
 }
 
+void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __width, int mask_level, int mode) {
+    int slice[8][8];
+    pixel inp_text[70];
+    pixel outp_text[70];
+
+    int height = (__height >> 3) << 3, width = (__width >> 3) << 3;
+    int linelen = __width;
+    for (int i = 0; i < height; i += 8) {
+        for (int j = 0; j < width; j += 8) {
+
+            for (int ii = 0; ii < 8; ++ii) {
+                for (int jj = 0; jj < 8; ++jj) {
+                    slice[ii][jj] = at(mat, i + ii, j + jj);
+                }
+            }
+            for (int ii = 0; ii < 8; ++ii) {
+                for (int jj = 0; jj < 8; ++jj) {
+                    int linelen = 8;
+                    at(inp_text, ii, jj) = (pixel)(slice[ii][jj] & ((1 << mask_level) - 1));
+                    slice[ii][jj] -= at(inp_text, ii, jj);
+                }
+            }
+
+            int inlen = 64, outlen;
+            if (mode == 0) {
+                if (EVP_EncryptUpdate(ctx, outp_text, &outlen, inp_text, inlen) != 1) {
+                    cout << "Panic: Encrypt Failed..." << endl;
+                }
+                if (EVP_EncryptFinal_ex(ctx, outp_text + outlen, &outlen) != 1) {
+                    cout << "Panic: Encrypt Failed..." << endl;
+                }
+            } else if (mode == 1) {
+                if (EVP_DecryptUpdate(ctx, outp_text, &outlen, inp_text, inlen) != 1) {
+                    cout << "Panic: Decrypt Failed ... " << endl;
+                }
+                if (EVP_DecryptFinal_ex(ctx, outp_text + outlen, &outlen) != 1) {
+                    cout << "Panic: Decrypt Failed ... " << endl;
+                }
+            }
+
+            for (int ii = 0; ii < 8; ii++) {
+                for (int jj = 0; jj < 8; jj++) {
+                    int linelen = 8;
+                    slice[ii][jj] += at(outp_text, ii, jj);
+                    linelen = __width;
+                    at(mat, i + ii, j + jj) = slice[ii][jj];
+                }
+            }
+
+        }
+    }
+}
+
 void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int encrypt_height,
                    int encrypt_width) {
+#ifndef frequency_field
 
+    uint8_t *mat = frame->data[0];
+    float *precise_mat = new float[encrypt_height * encrypt_width];
+    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
+        precise_mat[i] = (float) mat[i];
+    }
+
+    non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, STRONG_MASK, 0);
+    non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, WEAK_MASK, 0);
+
+    for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
+#ifdef spy
+        if (fabs(mat[i] - precise_mat[i]) > 64) {
+            printf("%d: %d %d\n", ++count, (int)mat[i], (int)precise_mat[i]);
+        }
+#endif
+        mat[i] = (uint8_t) precise_mat[i];
+    }
+
+    delete[]precise_mat;
+
+#else
 #ifdef debugloss
     initFstream();
 #endif
@@ -364,10 +439,33 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     counter++;
 #endif
     delete[]precise_mat;
+#endif
 }
 
 void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int decrypt_height,
                    int decrypt_width) {
+#ifndef frequency_field
+    uint8_t *mat = frame->data[0];
+    float *precise_mat = new float[decrypt_height * decrypt_width];
+    for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
+        precise_mat[i] = (float) mat[i];
+    }
+
+    non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, STRONG_MASK, 1);
+    non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, WEAK_MASK, 1);
+
+    for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
+#ifdef spy
+        if (fabs(mat[i] - precise_mat[i]) > 64) {
+            printf("%d: %d %d\n", ++count, (int)mat[i], (int)precise_mat[i]);
+        }
+#endif
+        mat[i] = (uint8_t) precise_mat[i];
+    }
+
+    delete[]precise_mat;
+
+#else
 
 #ifdef debugloss
     initFstream();
@@ -404,5 +502,5 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
         counter++;
 #endif
         delete precise_mat;
-
+#endif
 }

@@ -29,6 +29,9 @@ extern "C" {
 #define WEAK_LAYER_START 10
 #define WEAK_LAYER_END 10
 
+#define STRONG_MASK 8
+#define WEAK_MASK 4
+
 using namespace std;
 
 const int MAX_PADDING_LEN = 16;
