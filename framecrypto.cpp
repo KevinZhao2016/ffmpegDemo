@@ -3,6 +3,7 @@
 #define debug2
 #define debugloss
 #define debugZUC
+#define non_frequency_check
 
 #ifdef debugZUC
 #define MODE_ENCRYPT 0
@@ -311,6 +312,18 @@ void idct_frame(float *mat, int __height, int __width) {
     }
 }
 
+#ifdef non_frequency_check
+fstream estream, dstream;
+void init_stream(){
+    estream.open("encrypt_stream", ios::app|ios::out);
+    dstream.open("decrypt_stream", ios::app|ios::out);
+}
+void close_stream() {
+    estream.close();
+    dstream.close();
+}
+#endif
+
 void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __width, int mask_level, int mode) {
     int slice[8][8];
     pixel inp_text[70];
@@ -318,6 +331,8 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
 
     int height = (__height >> 3) << 3, width = (__width >> 3) << 3;
     int linelen = __width;
+    static int mat_encrypt_check_counter = 0;
+    static int mat_decrypt_check_counter = 0;
     for (int i = 0; i < height; i += 8) {
         for (int j = 0; j < width; j += 8) {
 
@@ -334,6 +349,45 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
             }
 
+#ifdef non_frequency_check
+            linelen = 8;
+            if (mat_decrypt_check_counter % 1000 == 0 && mode == 0) {
+                estream << "check mat " << mat_encrypt_check_counter % 1000 << " :" << endl;
+                estream << "deprecate pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        estream << (int)slice[i][j] << ' ';
+                    }
+                    estream << endl;
+                }
+                estream << "takenaway pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        estream << (int) at(inp_text, i, j) << ' ';
+                    }
+                    estream << endl;
+                }
+            }
+            if (mat_encrypt_check_counter % 1000 == 0 && mode == 1) {
+                dstream << "check mat " << mat_decrypt_check_counter % 1000 << " :" << endl;
+                dstream << "deprecate pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        dstream << (int)slice[i][j] << ' ';
+                    }
+                    dstream << endl;
+                }
+                estream << "takenaway pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        dstream << (int) at(outp_text, i, j) << ' ';
+                    }
+                    dstream << endl;
+                }
+            }
+            linelen = __width;
+#endif
+
             int inlen = 64, outlen;
             if (mode == 0) {
                 if (EVP_EncryptUpdate(ctx, outp_text, &outlen, inp_text, inlen) != 1) {
@@ -342,6 +396,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 if (EVP_EncryptFinal_ex(ctx, outp_text + outlen, &outlen) != 1) {
                     cout << "Panic: Encrypt Failed..." << endl;
                 }
+                mat_encrypt_check_counter++;
             } else if (mode == 1) {
                 if (EVP_DecryptUpdate(ctx, outp_text, &outlen, inp_text, inlen) != 1) {
                     cout << "Panic: Decrypt Failed ... " << endl;
@@ -349,6 +404,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 if (EVP_DecryptFinal_ex(ctx, outp_text + outlen, &outlen) != 1) {
                     cout << "Panic: Decrypt Failed ... " << endl;
                 }
+                mat_decrypt_check_counter++;
             }
 
             for (int ii = 0; ii < 8; ii++) {
@@ -360,6 +416,45 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
             }
 
+#ifdef non_frequency_check
+            linelen = 8;
+            if (mat_decrypt_check_counter % 1000 == 0 && mode == 0) {
+                estream << "check mat " << mat_encrypt_check_counter % 1000 << " :" << endl;
+                estream << "deprecate pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        estream << (int)slice[i][j] << ' ';
+                    }
+                    estream << endl;
+                }
+                estream << "takenaway pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        estream << (int) at(outp_text, i, j) << ' ';
+                    }
+                    estream << endl;
+                }
+            }
+            if (mat_encrypt_check_counter % 1000 == 0 && mode == 1) {
+                dstream << "check mat " << mat_decrypt_check_counter % 1000 << " :" << endl;
+                dstream << "deprecate pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        dstream << (int)slice[i][j] << ' ';
+                    }
+                    dstream << endl;
+                }
+                estream << "takenaway pixels:" << endl;
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        dstream << (int) at(outp_text, i, j) << ' ';
+                    }
+                    dstream << endl;
+                }
+            }
+            linelen = __width;
+#endif
+
         }
     }
 }
@@ -368,6 +463,10 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
                    int encrypt_width) {
 #ifndef frequency_field
 
+#ifdef non_frequency_check
+    init_stream();
+#endif
+
     uint8_t *mat = frame->data[0];
     float *precise_mat = new float[encrypt_height * encrypt_width];
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
@@ -375,7 +474,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, STRONG_MASK, 0);
-    non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, WEAK_MASK, 0);
+    non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, 0);
 
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
 #ifdef spy
@@ -385,6 +484,10 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
 #endif
         mat[i] = (uint8_t) precise_mat[i];
     }
+
+#ifdef non_frequency_check
+    close_stream();
+#endif
 
     delete[]precise_mat;
 
@@ -445,6 +548,11 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
 void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int decrypt_height,
                    int decrypt_width) {
 #ifndef frequency_field
+
+#ifdef non_frequency_check
+    init_stream();
+#endif
+
     uint8_t *mat = frame->data[0];
     float *precise_mat = new float[decrypt_height * decrypt_width];
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
@@ -452,7 +560,7 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, STRONG_MASK, 1);
-    non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, WEAK_MASK, 1);
+    non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, 1);
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
 #ifdef spy
@@ -462,6 +570,10 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
 #endif
         mat[i] = (uint8_t) precise_mat[i];
     }
+
+#ifdef non_frequency_check
+    close_stream();
+#endif
 
     delete[]precise_mat;
 
