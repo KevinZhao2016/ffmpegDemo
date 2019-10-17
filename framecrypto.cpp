@@ -2,7 +2,7 @@
 
 #define debug2
 #define debugloss
-#define debugZUC2
+#define debugZUC
 #define non_frequency_check
 
 #ifdef debugZUC
@@ -315,8 +315,8 @@ void idct_frame(float *mat, int __height, int __width) {
 #ifdef non_frequency_check
 fstream estream, dstream;
 void init_stream(){
-    estream.open("encrypt_stream", ios::out);
-    dstream.open("decrypt_stream", ios::out);
+    estream.open("encrypt_stream", ios::app|ios::out);
+    dstream.open("decrypt_stream", ios::app|ios::out);
 }
 void close_stream() {
     estream.close();
@@ -351,6 +351,14 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
 
 #ifdef non_frequency_check
             linelen = 8;
+            //cout << mat_decrypt_check_counter << "  " << mat_encrypt_check_counter << endl;
+            if (i == 128 && j == 128 && mode == MODE_ENCRYPT) {
+                estream << "Attention!" << endl;
+                //dstream << "Attention!" << endl;
+            }
+            if (i == 128 && j == 128 && mode == MODE_DECRYPT) {
+                dstream << "Attention!" << endl;
+            }
             if (mat_encrypt_check_counter % 1000 == 0 && mode == MODE_ENCRYPT) {
                 estream << "check mat " << mat_encrypt_check_counter / 1000 << " :" << endl;
                 estream << "deprecate pixels:" << endl;
@@ -369,8 +377,10 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
             }
             if (mat_decrypt_check_counter % 1000 == 0 && mode == MODE_DECRYPT) {
+                int c = mat_decrypt_check_counter;
                 dstream << "check mat " << mat_decrypt_check_counter / 1000 << " :" << endl;
                 dstream << "deprecate pixels:" << endl;
+
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
                         dstream << (int)slice[i][j] << ' ';
@@ -406,7 +416,7 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
                 }
                 mat_decrypt_check_counter++;
             } else {
-                //cout << "debug mode :" << mode << endl;
+                cout << "debug mode :" << mode << endl;
                 for (int i = 0; i < inlen; i++) {
                     outp_text[i] = inp_text[i];
                 }
@@ -482,7 +492,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, STRONG_MASK, MODE_ENCRYPT);
-    non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
+    //non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
 
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
 #ifdef spy
@@ -569,7 +579,7 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, STRONG_MASK, MODE_DECRYPT);
-    non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
+    //non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
 #ifdef spy
