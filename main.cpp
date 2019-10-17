@@ -6,7 +6,7 @@
 #include <ctime>
 
 using namespace std;
-
+int fcount = 0;
 
 string PRIVATE_KEY = "-----BEGIN EC PRIVATE KEY-----\n"
         "MHcCAQEEIOM9oRgXxjg2ls56/gcSVI687gDL6tJGW0xDnXORUAe2oAoGCCqBHM9V\n"
@@ -101,6 +101,9 @@ void Time_base(AVPacket *pkt, AVFormatContext *&ic, AVFormatContext *&oc) {
 //    }
 //}
 
+bool flag = true;
+
+unsigned char keyMat[1080 * 1920];
 
 void
 av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AVFormatContext *ic, AVFormatContext *oc,
@@ -124,27 +127,99 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             return;
         }
         printf("receive frame %3d\n", ct->frame_number);
-        if (!watermark && frame->key_frame) {
 
+
+        if (!watermark) {
+            fcount++;
+//            frame->pict_type = AV_PICTURE_TYPE_I;
             if (mode == 1) {
-                Crypto crypto = Crypto();
-                crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
-                //加密关键帧
-                encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+                if (flag) {
+                    for (int i = 0; i < 10; ++i) {
+                        cout << (int) frame->data[0][i] << " ";
+                    }
+                    cout << endl;
+                }
 
-                Crypto crypto1 = Crypto();
-                crypto1.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
-                decrypt_frame(frame, crypto1.strong_en, crypto1.weak_en, height, frame->linesize[0]);
+                if (frame->key_frame && fcount % 15 == 1) {
+                    Crypto crypto = Crypto();
+                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+                    //加密关键帧
+                    encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]/2);
+
+                    uint8_t *mat = frame->data[0];
+                    for (int j = 0; j < 1080 * 1920; ++j) {
+                        keyMat[j] = mat[j];
+                    }//保存关键帧
+                }
+
+//                if (!frame->key_frame) {
+//                    uint8_t *mat = frame->data[0];
+//                    for (int j = 0; j < 1080 * 1920; ++j) {
+//                        mat[j] = keyMat[j];
+//                    }//非关键帧
+//                }
+
+                if (flag) {
+                    for (int i = 0; i < 10; ++i) {
+                        cout << (int) frame->data[0][i] << " ";
+                    }
+                    cout << endl;
+                }
+
+
+//                Crypto crypto1 = Crypto();
+//                crypto1.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+//                decrypt_frame(frame, crypto1.strong_en, crypto1.weak_en, height, frame->linesize[0]);
+
+                if (flag) {
+                    for (int i = 0; i < 10; ++i) {
+                        cout << (int) frame->data[0][i] << " ";
+                    }
+                    cout << endl;
+                }
+
+                flag = false;
             } else if (mode == 0) {
-                //解密
-                Crypto crypto = Crypto();
-                crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
-                decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+//                11 211 166 21 58 227 183 152 168 173
+//                233 229 234 236 236 238 152 229 239 227
+                if (flag) {
+                    for (int i = 0; i < 10; ++i) {
+                        cout << (int) frame->data[0][i] << " ";
+                    }
+                    cout << endl;
+                }
+
+
+                if (frame->key_frame && fcount % 15 == 1) {
+                    //解密
+                    Crypto crypto = Crypto();
+                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+                    decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]/2);
+                    uint8_t *mat = frame->data[0];
+                    for (int j = 0; j < 1080 * 1920; ++j) {
+                        keyMat[j] = mat[j];
+                    }//保存关键帧
+                }
+//                if (!frame->key_frame) {
+//                    uint8_t *mat = frame->data[0];
+//                    for (int j = 0; j < 1080 * 1920; ++j) {
+//                        mat[j] = keyMat[j];
+//                    }//非关键帧
+//                }
+
+                if (flag) {
+                    for (int i = 0; i < 10; ++i) {
+                        cout << (int) frame->data[0][i] << " ";
+                    }
+                    cout << endl;
+                }
+
+                flag = false;
             }
 
         }
 
-        if (watermark && count == 0 && frame->key_frame == 1) { //找到第一个非关键帧，插入水印
+        if (watermark && count == 0 && frame->key_frame == 1) { //找到第一个关键帧，插入水印
             count++;
             clock_t start, ends;
             start = clock();
@@ -284,7 +359,8 @@ void getPkt(AVFormatContext *ic, int &videoidx, int &audioidx) {
     AVDictionary *param = nullptr;
     av_dict_set(&param, "preset", "ultrafast", 0);
 //    av_dict_set(&param, "qp", "0", 0);
-    av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
+    av_dict_set(&param, "profile", "baseline", 0);
+//    av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
     if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
         printf("Could not open decodec\n");
         return;
@@ -323,6 +399,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     AVDictionary *param = nullptr;
     av_dict_set(&param, "preset", "ultrafast", 0);
 //    av_dict_set(&param, "qp", "0", 0);
+//    av_dict_set(&param,"profile","0", 0);
     av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
     if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
         printf("Could not open decodec\n");
@@ -339,6 +416,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     }
     poutCodecCtx->time_base = (AVRational) {1, 30};
     poutCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+//    poutCodecCtx->gop_size = 3;
     if (avcodec_open2(poutCodecCtx, penCodec, &param) < 0) {//打开编码器
         printf("Could not open encodec\n");
         return;
