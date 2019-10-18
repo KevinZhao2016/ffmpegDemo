@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const request = require('request');
 const Config = require('../config/basic');
+const executor = require('child_process').execSync;
 
 /*
 * certificate if the siganture is given by the publickey owner.
@@ -9,20 +10,27 @@ const Config = require('../config/basic');
 
 router.post('/', (req, res) => {
     const msg = {
-        signature: req.signature,
-        publickey: req.publickey
+        filename: req.body.filename,
+        signature: req.body.signature,
+        publickey: req.body.publickey
     }
     try {
         /*
         * do some work...
         **/
+        //let ans = 0;
+        let answer = executor(Config.relative_path + "/ffmpegDemo 6 " + msg.signature + " " + msg.publickey)
+            .toString()
+            .replace(' ', '')
+            .replace('\n', '')
+            .replace('\r', '');
 
-        if (answer === 1) {
+        if (answer === '1') {
             res.send({
                 status: '200',
                 msg: 'Yes the signature is produced by the public key'
             })
-        } else if (answer === 0) {
+        } else if (answer === '0') {
             res.send({
                 status: '403',
                 msg: 'Yes but the signature is not correspond with the publickey'

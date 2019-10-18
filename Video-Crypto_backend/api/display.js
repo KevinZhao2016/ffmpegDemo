@@ -19,7 +19,41 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 * */
 
 router.post('/', (req, res) => {
-    
+    try {
+        const rows = {
+            json: true,
+            code: 'admin',
+            table: 'video',
+            scope: 'admin',
+            limit: 1,
+            reverse: true,
+            show_payer: true
+        }
+        let ret = [];
+        return rpc.get_table_rows(rows).then(value => {
+            console.log(JSON.stringify(value, null, 2));
+            const list = value.rows;
+            const len = list.length;
+            for( i = 0; i < len; i++) {
+                ret.push({
+                    ID: list[i].data.ID,
+                    owner: list[i].data.owner,
+                    signature: list[i].data.sign,
+                    time: list[i].data.time
+                })
+            }
+            res.send({
+                status: '200',
+                list: ret
+            })
+        })
+    } catch (e) {
+        console.log(e);
+        res.send({
+            status: '500',
+            msg: 'something went wrong.'
+        })
+    }
 });
 
 

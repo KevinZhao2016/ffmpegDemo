@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const request = require('request');
 const Config = require('../config/basic');
+const executor = require('child_process').execSync;
 
 const { Api, JsonRpc, RpcError, Numeric } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
@@ -14,7 +15,6 @@ const signatureProvider = new JsSignatureProvider(privateKeys);
 const rpc = new JsonRpc('http://127.0.0.1:8000', { fetch });
 const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
-const executor = require('child_process').execSync;
 
 router.post('/', (req, res) => {
     const msg = {
@@ -26,6 +26,15 @@ router.post('/', (req, res) => {
      * do somework with c++.
      **/
     try {
+        if (Config.userName === null || Config.walletKey === null) {
+            console.log('User has not login. Refused to serve.');
+            res.send({
+                status: 403,
+                message: 'Please sign in before any other operations.'
+            });
+            return;
+        }
+
         res.send({
             status: '200',
             msg: 'OK successfully encrypted.'

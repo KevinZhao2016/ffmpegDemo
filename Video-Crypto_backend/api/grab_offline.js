@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const request = require('request');
 const Config = require('../config/basic');
-
+const executor = require('child_process').execSync;
 /*
 * take signature out from a file.
 * input: filename, output: signature
@@ -17,7 +17,8 @@ router.post('/', (req, res) => {
         * do some works.
         * */
 
-        let ret = {}
+        let ret = { siganture: "" };
+        ret.siganture = executor(Config.relative_path + "/ffmpegDemo 5 " + msg.filename).toString();
 
         res.send({
             status: '200',
