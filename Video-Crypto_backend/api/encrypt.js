@@ -14,6 +14,8 @@ const signatureProvider = new JsSignatureProvider(privateKeys);
 const rpc = new JsonRpc('http://127.0.0.1:8000', { fetch });
 const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
+const executor = require('child_process').execSync;
+
 router.post('/', (req, res) => {
     const msg = {
         filename: req.body.filename,
@@ -23,11 +25,18 @@ router.post('/', (req, res) => {
     /*
      * do somework with c++.
      **/
-
-    res.send({
-        status: '200',
-        msg: 'OK successfully encrypted.'
-    })
+    try {
+        res.send({
+            status: '200',
+            msg: 'OK successfully encrypted.'
+        })
+    } catch(e) {
+        console.log(e);
+        res.send({
+            status: '500',
+            msg: 'something went wrong.'
+        })
+    }
 });
 
 

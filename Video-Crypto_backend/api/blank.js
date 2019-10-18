@@ -6,8 +6,11 @@ router.post('/pipe', (req, res) => {
 
     var result = '';
 
-    var child = exec('ping bilibili.com').toString();
-    console.log(child);
+    var child = exec('D:\\Working\\Reseaching\\exec.exe 114 514 1919810').toString();
+
+    //var child = exec('ping bilibili.com').toString();
+    let ret = child.split('\r\n');
+    console.log(ret);
     console.log("something");
     res.send({
         status: '200',
