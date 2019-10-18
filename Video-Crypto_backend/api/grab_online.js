@@ -33,6 +33,32 @@ router.post('/', (req, res) => {
             });
             return;
         }
+        const row = {
+            json: true,
+            code: 'admin',
+            table: 'video',
+            lower_bound: msg.id,
+            scope: 'admin',
+            limit: 1,
+            reverse: true,
+            show_payer: true
+        }
+
+        return rpc.get_table_rows(rows).then((value) => {
+            console.log(JSON.stringify(value, null, 2));
+            const signature = value.rows[0].data.signature;
+            res.send({
+                status: '200',
+                msg: 'OK successfully get the signature',
+                signature: signature
+            })
+        }).catch(error => {
+            console.log(error);
+            res.send({
+                status: '500',
+                msg: 'unexpected error'
+            })
+        })
 
     } catch(e) {
         res.send({
