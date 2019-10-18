@@ -146,9 +146,9 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 
                     Crypto crypto = Crypto();
                     zucKey = crypto.randKey();
-                    zuciv = crypto.randKey();
+                    zuciv = crypto.randKey().first;
                     crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
-                                   (unsigned char *) zuciv.second.c_str());
+                                   (unsigned char *) zuciv.c_str());
                     //加密关键帧
                     encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();

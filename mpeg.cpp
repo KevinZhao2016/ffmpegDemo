@@ -118,9 +118,9 @@ int main(int argc, char *argv[]) {
     Base64 base64 = Base64();
     av_log_set_level(AV_LOG_QUIET);
 //    mpeg.getKeyPair();
-    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry111.mp4");
+//    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry111.mp4");
 //    mpeg.decryptFrame("test_golf_cry.mp4", "golf_hf1.mp4");
-//    cout << mpeg.getSign( "test_golf.mp4",PRIVATE_KEY) << endl;
+    cout << mpeg.getSign( "test_golf.mp4",PRIVATE_KEY) << endl;
 //    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;
 //    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B",PUBLIC_KEY) << endl;
