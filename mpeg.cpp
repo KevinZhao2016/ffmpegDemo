@@ -46,11 +46,11 @@ public:
         Open_In_fine(inpath, videoidx, audioidx, ic);
         getPktSign(ic, videoidx, audioidx, 0, &sig);
         avformat_close_input(&ic);
-        cout << "file sign is:" << endl;
-        for (int i = 0; i < sig.size; i++) {
-            printf("%02x ", sig.message[i]);
-        }
-        cout << endl;
+//        cout << "file sign is:" << endl;
+//        for (int i = 0; i < sig.size; i++) {
+//            printf("%02x ", sig.message[i]);
+//        }
+//        cout << endl;
         base = base64.Encode(sig.message, sig.size);
         return base;
     }
@@ -59,7 +59,7 @@ public:
         strcpy(this->inpath, file);
         PUBLIC_KEY = publicKey;
         sig.size = base64.Decode(sign.c_str(), sig.message);
-        cout << sig.size << endl;
+//        cout << sig.size << endl;
         Open_In_fine(inpath, videoidx, audioidx, ic);
         int ans = getPktSign(ic, videoidx, audioidx, 1, &sig);
         avformat_close_input(&ic);
@@ -71,23 +71,35 @@ public:
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
         write_url_file(ic, oc, videoidx, audioidx, false, 1);
         close_ffmpeg(ic, oc);
+        cout << "strongKey" << endl;
+        cout << zucKey.first << endl;
+        cout << "weakKey" << endl;
+        cout << zucKey.second << endl;
+        cout << "iv" << endl;
+        cout << zuciv << endl;
+        cout << "success" << endl;
     }
 
-    void decryptFrame(const char *infile, const char *outfile) {
+    void decryptFrame(const char *infile, const char *outfile, string strongKey, string weakKey, string iv) {
+        zucKey.first = strongKey;
+        zucKey.second = weakKey;
+        zuciv = iv;
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
         write_url_file(ic, oc, videoidx, audioidx, false, 0);
         close_ffmpeg(ic, oc);
+        cout << "success" << endl;
     }
 
-    void waterMark(const char *infile, const char *outfile, const string sign) {
+    void insertMark(const char *infile, const char *outfile, const string sign) {
         sig.size = base64.Decode(sign.c_str(), sig.message);
         sig.message[sig.size++] = 0xaa; //结束符
-        cout << base64.Encode(sig.message, sig.size) << endl;
+        base64.Encode(sig.message, sig.size);
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
         write_url_file(ic, oc, videoidx, audioidx, true, -1);
         close_ffmpeg(ic, oc);
+        cout << "success" << endl;
     }
 
     string getWaterMark(const char *file) {
@@ -99,26 +111,17 @@ public:
     }
 };
 
-void testMulti() {
-    float A[] = {1, 2, 3, 2, 1, 3, 3, 2, 1};
-    float B[] = {-1, -2, -3, -2, -3, -1, -3, -1, -2};
-    float C[10];
-    mat_mul(A, B, C, 3, 3, 3);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            cout << C[i * 3 + j] << ' ';
-        }
-        cout << endl;
-    }
-}
 
-int main() {
+int main(int argc, char *argv[]) {
+    cout << argv[0] << endl;
     Mpeg mpeg = Mpeg();
     Base64 base64 = Base64();
-//    mpeg.encryptFrame("test.mp4", "test11.mp4");
-    mpeg.decryptFrame("test11.mp4", "test2.mp4");
-//    cout << mpeg.getSign("test.mp4",PRIVATE_KEY) << endl;
-//    mpeg.waterMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
+    av_log_set_level(AV_LOG_QUIET);
+//    mpeg.getKeyPair();
+//    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry111.mp4");
+//    mpeg.decryptFrame("test_golf_cry.mp4", "golf_hf1.mp4");
+    cout << mpeg.getSign( "test_golf.mp4",PRIVATE_KEY) << endl;
+//    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;
 //    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B",PUBLIC_KEY) << endl;
     return 0;

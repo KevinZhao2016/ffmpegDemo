@@ -46,7 +46,7 @@ public:
             exit(1);
         }
 
-        group1 = EC_GROUP_new_by_curve_name(NID_sm2p256v1);//NID_sm2p256v1
+        group1 = EC_GROUP_new_by_curve_name(1121);//NID_sm2p256v1
 
         if (group1 == NULL) {
             cout << "Failed to Gen Key" << endl;
@@ -103,7 +103,7 @@ public:
     EC_KEY *CreateEC(unsigned char *key, int is_public) {
         EC_KEY *ec_key = nullptr;
         BIO *keybio = nullptr;
-        cout << key << endl;
+//        cout << key << endl;
 
         keybio = BIO_new_mem_buf(key, -1);
         if (keybio == nullptr) {
@@ -144,8 +144,8 @@ public:
 
 
     void UpdateSignBySM2(int64_t *msg, int len) {
-        cout << "SM2 update:" << " ";
-        cout << EVP_DigestUpdate(mdctx, msg, sizeof(msg)) << endl;
+//        cout << "SM2 update:" << " ";
+        EVP_DigestUpdate(mdctx, msg, sizeof(msg));
     }
 
     unsigned int finishSigh(unsigned char *sig, const string &private_key) {
@@ -155,7 +155,7 @@ public:
         EVP_PKEY_set1_EC_KEY(evpkey, this->Key);
 
         EVP_SignFinal(this->mdctx, sig, &slen, evpkey);
-        cout << "slen: " << slen << endl;
+//        cout << "slen: " << slen << endl;
         EVP_MD_CTX_destroy(mdctx);
         return slen;
     }
@@ -169,12 +169,13 @@ public:
         return res;
     }
 
-    void initZUC(unsigned char *strong_key, unsigned char *weak_key) {
+    void initZUC(unsigned char *strong_key, unsigned char *weak_key, unsigned char *iv) {
         const unsigned char *strong_iv = (unsigned char *) "strong_iv", *weak_iv = (unsigned char *) "weak_iv";
         this->strong_en = EVP_CIPHER_CTX_new();
         this->weak_en = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(strong_en, EVP_zuc(), nullptr, strong_key, strong_iv);
-        EVP_EncryptInit_ex(weak_en, EVP_zuc(), nullptr, weak_key, weak_iv);
+
+        EVP_EncryptInit(strong_en, EVP_zuc(),  strong_key, strong_iv);
+        EVP_EncryptInit(weak_en, EVP_zuc(),  weak_key, weak_iv);
     }
 
     pair<string, string> randKey() {

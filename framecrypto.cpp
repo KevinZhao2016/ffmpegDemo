@@ -1,9 +1,9 @@
 #include "framecrypto.h"
 
 #define debug2
-#define debugloss
+//#define debugloss
 #define debugZUC
-#define non_frequency_check
+//#define non_frequency_check
 
 #ifdef debugZUC
 #define MODE_ENCRYPT 0
@@ -34,27 +34,27 @@ fstream mat_bef, mat_aft;
 fstream dct_recover;
 #endif
 
-void initFstream() {
-    if (counter > 1) return;
-    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
-    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
-    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
-    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
-    mat_bef.open("mat_bef.txt", ios::app | ios::out);
-    mat_aft.open("mat_aft.txt", ios::app | ios::out);
-    dct_recover.open("dct_recover.txt", ios::app | ios::out);
-}
+//if (counter > 1) return;
+//plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+//plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+//cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+//cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+//mat_bef.open("mat_bef.txt", ios::app | ios::out);
+//mat_aft.open("mat_aft.txt", ios::app | ios::out);
+//dct_recover.open("dct_recover.txt", ios::app | ios::out);
+//}
+//
+//void closeFstream() {
+//    if (counter > 1) return;
+//    plain_bef.close();
+//    plain_aft.close();
+//    cipher_bef.close();
+//    cipher_aft.close();
+//    mat_aft.close();
+//    mat_bef.close();
+//    dct_recover.close();
+//}void initFstream() {
 
-void closeFstream() {
-    if (counter > 1) return;
-    plain_bef.close();
-    plain_aft.close();
-    cipher_bef.close();
-    cipher_aft.close();
-    mat_aft.close();
-    mat_bef.close();
-    dct_recover.close();
-}
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {
@@ -334,6 +334,8 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
     static int mat_encrypt_check_counter = 0;
     static int mat_decrypt_check_counter = 0;
     for (int i = 0; i < height; i += 8) {
+//        if(i % 16 != 0)
+//            continue;
         for (int j = 0; j < width; j += 8) {
 
             for (int ii = 0; ii < 8; ++ii) {
@@ -427,7 +429,9 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
                     int linelen = 8;
-                    slice[ii][jj] += at(outp_text, ii, jj);
+                    int temp = at(outp_text, ii, jj);
+                    temp &= ((1 << mask_level) - 1);
+                    slice[ii][jj] += temp;
                     linelen = __width;
                     at(mat, i + ii, j + jj) = slice[ii][jj];
                 }
@@ -492,7 +496,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, STRONG_MASK, MODE_ENCRYPT);
-    //non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
+    non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
 
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
 #ifdef spy
@@ -578,8 +582,9 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
         precise_mat[i] = (float) mat[i];
     }
 
+    non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
     non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, STRONG_MASK, MODE_DECRYPT);
-    //non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
+
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
 #ifdef spy
