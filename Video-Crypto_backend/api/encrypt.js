@@ -20,7 +20,14 @@ router.post('/', (req, res) => {
         key: req.body.key,
         iv: req.body.iv
     }
+    /*
+     * do somework with c++.
+     **/
 
+    res.send({
+        status: '200',
+        msg: 'OK successfully encrypted.'
+    })
 });
 
 
