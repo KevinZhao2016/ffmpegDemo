@@ -115,9 +115,9 @@ void testMulti() {
 int main() {
     Mpeg mpeg = Mpeg();
     Base64 base64 = Base64();
-//    mpeg.encryptFrame("test.mp4", "test11.mp4");
-    mpeg.decryptFrame("test11.mp4", "test2.mp4");
-//    cout << mpeg.getSign("test.mp4",PRIVATE_KEY) << endl;
+//    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry.mp4");
+    mpeg.decryptFrame("test_golf_cry.mp4", "golf_hf1.mp4");
+//    cout << mpeg.getSign( "test.mp4",PRIVATE_KEY) << endl;
 //    mpeg.waterMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;
 //    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B",PUBLIC_KEY) << endl;

@@ -334,6 +334,8 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
     static int mat_encrypt_check_counter = 0;
     static int mat_decrypt_check_counter = 0;
     for (int i = 0; i < height; i += 8) {
+//        if(i % 16 != 0)
+//            continue;
         for (int j = 0; j < width; j += 8) {
 
             for (int ii = 0; ii < 8; ++ii) {
@@ -427,7 +429,9 @@ void non_frequency_crypto(float *mat, EVP_CIPHER_CTX *ctx, int __height, int __w
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
                     int linelen = 8;
-                    slice[ii][jj] += at(outp_text, ii, jj);
+                    int temp = at(outp_text, ii, jj);
+                    temp &= ((1 << mask_level) - 1);
+                    slice[ii][jj] += temp;
                     linelen = __width;
                     at(mat, i + ii, j + jj) = slice[ii][jj];
                 }
@@ -492,7 +496,7 @@ void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
     }
 
     non_frequency_crypto(precise_mat, strong_en, encrypt_height, encrypt_width, STRONG_MASK, MODE_ENCRYPT);
-    //non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
+    non_frequency_crypto(precise_mat, weak_en, encrypt_height, encrypt_width, WEAK_MASK, MODE_ENCRYPT);
 
     for (int i = 0; i < encrypt_height * encrypt_width; ++i) {
 #ifdef spy
@@ -578,8 +582,9 @@ void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *we
         precise_mat[i] = (float) mat[i];
     }
 
+    non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
     non_frequency_crypto(precise_mat, strong_en, decrypt_height, decrypt_width, STRONG_MASK, MODE_DECRYPT);
-    //non_frequency_crypto(precise_mat, weak_en, decrypt_height, decrypt_width, WEAK_MASK, MODE_DECRYPT);
+
 
     for (int i = 0; i < decrypt_height * decrypt_width; ++i) {
 #ifdef spy
