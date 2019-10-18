@@ -19,6 +19,7 @@ string PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n"
         "-----END PUBLIC KEY-----";
 string sig_base64 = "MEUCIEkjtHpklPWvrdncb3N2UZQltmpnGywEz77VmPvQQWRfAiEA5vM8jBBQtkKv6hXVGOMXzYLIDnQne+obo8U2SxeRrgE=";
 
+
 int Open_In_fine(const char *infile, int &videoidx, int &audioidx, AVFormatContext *&ic) {
     avformat_open_input(&ic, infile, nullptr, nullptr);
     if (!ic) {
@@ -36,7 +37,7 @@ int Open_In_fine(const char *infile, int &videoidx, int &audioidx, AVFormatConte
         return -1;
     }
 //    av_dump_format(ic, 0, infile, 0); //视频基本信息
-    cout << "open......" << endl;
+//    cout << "open......" << endl;
     return 0;
 }
 
@@ -125,58 +126,53 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             cout << "Error during decoding" << endl;
             return;
         }
-        printf("receive frame %3d\n", ct->frame_number);
+//        printf("receive frame %3d\n", ct->frame_number);
 
 
         if (!watermark) {
 //            fcount++;
 //            frame->pict_type = AV_PICTURE_TYPE_I;
             if (mode == 1) {
-                if (flag) {
-                    for (int i = 0; i < 10; ++i) {
-                        cout << (int) frame->data[0][i] << " ";
-                    }
-                    cout << endl;
-                }
+//                if (flag) {
+//                    for (int i = 0; i < 10; ++i) {
+//                        cout << (int) frame->data[0][i] << " ";
+//                    }
+//                    cout << endl;
+//                }
 
                 if (frame->key_frame) {
                     clock_t start, ends;
                     start = clock();
 
                     Crypto crypto = Crypto();
-                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+                    zucKey = crypto.randKey();
+                    zuciv = crypto.randKey();
+                    crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
+                                   (unsigned char *) zuciv.second.c_str());
                     //加密关键帧
                     encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
-                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
                 }
 
 
-                if (flag) {
-                    for (int i = 0; i < 10; ++i) {
-                        cout << (int) frame->data[0][i] << " ";
-                    }
-                    cout << endl;
-                }
-
-
-                if (flag) {
-                    for (int i = 0; i < 10; ++i) {
-                        cout << (int) frame->data[0][i] << " ";
-                    }
-                    cout << endl;
-                }
+//                if (flag) {
+//                    for (int i = 0; i < 10; ++i) {
+//                        cout << (int) frame->data[0][i] << " ";
+//                    }
+//                    cout << endl;
+//                }
 
                 flag = false;
             } else if (mode == 0) {
 
-                if (flag) {
-                    for (int i = 0; i < 10; ++i) {
-                        cout << (int) frame->data[0][i] << " ";
-                    }
-                    cout << endl;
-                }
+//                if (flag) {
+//                    for (int i = 0; i < 10; ++i) {
+//                        cout << (int) frame->data[0][i] << " ";
+//                    }
+//                    cout << endl;
+//                }
 
 
                 if (frame->key_frame) {
@@ -184,10 +180,11 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     start = clock();
                     //解密
                     Crypto crypto = Crypto();
-                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko111", (unsigned char *) "Azuki azusa");
+                    crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
+                                   (unsigned char *) zuciv.c_str());
                     decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
-                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
                 }
 //                if (!frame->key_frame) {
 //                    uint8_t *mat = frame->data[0];
@@ -196,12 +193,12 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 //                    }//非关键帧
 //                }
 
-                if (flag) {
-                    for (int i = 0; i < 10; ++i) {
-                        cout << (int) frame->data[0][i] << " ";
-                    }
-                    cout << endl;
-                }
+//                if (flag) {
+//                    for (int i = 0; i < 10; ++i) {
+//                        cout << (int) frame->data[0][i] << " ";
+//                    }
+//                    cout << endl;
+//                }
 
                 flag = false;
             }
@@ -214,7 +211,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             start = clock();
             insertMark(frame);
             ends = clock();
-            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);
@@ -231,7 +228,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                 cout << "Error during encoding" << endl;
                 return;
             }
-            cout << "encoding success" << endl;
+//            cout << "encoding success" << endl;
             Time_base(pkt, ic, oc);
             av_write_frame(oc, pkt);
         }
@@ -278,12 +275,12 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
     if (if_verify) {
         int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
         ends = clock();
-        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
+//        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
         return ans;
     } else {
         sig->size = crypto.finishSigh(p, PRIVATE_KEY);
         ends = clock();
-        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
+//        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
         return -1;
     }
     avcodec_free_context(&pCodecCtx);
@@ -308,28 +305,16 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
             cout << "Error during decoding" << endl;
             return;
         }
-        printf("receive frame %3d\n", ct->frame_number);
+//        printf("receive frame %3d\n", ct->frame_number);
         if (frame->key_frame == 1) { //找到第一个关键帧，取出水印
-            cout << "found!" << endl;
+//            cout << "found!" << endl;
             clock_t start, ends;
             start = clock();
             getMark(frame);
             count++;
             ends = clock();
-            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
             return;
-//            cout << (int)frame->data[2][71] << endl;
-//            for (i = 0; i < 75; ++i) {
-//                //(height - 1) * frame->linesize[1] +
-//               sig.message[i] = frame->data[1][i];
-//                cout << frame->data[2][i]-sig.message[i] << endl;
-//                if (i >= 70 && frame->data[2][i + 1] == 128) {
-//                    sig.size = i + 1;
-//                    count++;
-//                    cout << i + 1<< endl;
-//                    return;
-//                }
-//            }
         }
     }
 }
@@ -348,7 +333,7 @@ void getPkt(AVFormatContext *ic, int &videoidx, int &audioidx) {
     AVDictionary *param = nullptr;
     av_dict_set(&param, "preset", "ultrafast", 0);
 //    av_dict_set(&param, "qp", "0", 0);
-    av_dict_set(&param, "profile", "baseline", 0);
+//    av_dict_set(&param, "profile", "baseline", 0);
 //    av_dict_set(&param, "tune", "zerolatency", 0);  //实现实时编码
     if (avcodec_open2(pCodecCtx, pCodec, &param) < 0) {//打开解码器
         printf("Could not open decodec\n");
@@ -405,7 +390,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     }
     poutCodecCtx->time_base = (AVRational) {1, 30};
     poutCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
-    poutCodecCtx->bit_rate = 1000*1000*50;
+    poutCodecCtx->bit_rate = 1000 * 1000 * 50;
     poutCodecCtx->qmax = 15;
     poutCodecCtx->qmin = 1;
 //    poutCodecCtx->gop_size = 3;
@@ -417,7 +402,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
             av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, mode, count);
-            cout << "__________" << endl;
+//            cout << "__________" << endl;
 //            cout << "pkt flag " << pkt->flags << endl;
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
 //                cout << "KEY_PKT" << endl;

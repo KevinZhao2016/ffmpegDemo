@@ -7,6 +7,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/dict.h>
+#include "libavutil/log.h"
 }
 
 #include <iostream>
@@ -17,5 +18,7 @@ typedef struct signature {
     int size = 0;
 } Signature;
 Signature sig = Signature();
-pair<string,string> zucKey;
+pair<string,string> zucKey; //strong,weak
+string zuciv;
+
 #endif //FFMPEGDEMO_GLOBAL_H

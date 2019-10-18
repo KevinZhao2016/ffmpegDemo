@@ -37,7 +37,7 @@ void insertMark(AVFrame *frame) {
             frame->data[1][i * 9 + 1 + j] = frame->data[1][i * 9 + j] + d * delta;
         }
     }
-    cout << "marked!" << endl;
+//    cout << "marked!" << endl;
 }
 
 void getMark(AVFrame *frame) {
@@ -54,7 +54,7 @@ void getMark(AVFrame *frame) {
         }
         if (i >= 69 && num == 0xaa) { //终结符
             sig.size = i;
-            cout << "size: " << sig.size << endl;
+//            cout << "size: " << sig.size << endl;
             return;
         } else{
             sig.message[i] = num;

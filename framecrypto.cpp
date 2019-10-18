@@ -1,9 +1,9 @@
 #include "framecrypto.h"
 
 #define debug2
-#define debugloss
+//#define debugloss
 #define debugZUC
-#define non_frequency_check
+//#define non_frequency_check
 
 #ifdef debugZUC
 #define MODE_ENCRYPT 0
@@ -34,27 +34,27 @@ fstream mat_bef, mat_aft;
 fstream dct_recover;
 #endif
 
-void initFstream() {
-    if (counter > 1) return;
-    plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
-    plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
-    cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
-    cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
-    mat_bef.open("mat_bef.txt", ios::app | ios::out);
-    mat_aft.open("mat_aft.txt", ios::app | ios::out);
-    dct_recover.open("dct_recover.txt", ios::app | ios::out);
-}
+//if (counter > 1) return;
+//plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+//plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+//cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+//cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+//mat_bef.open("mat_bef.txt", ios::app | ios::out);
+//mat_aft.open("mat_aft.txt", ios::app | ios::out);
+//dct_recover.open("dct_recover.txt", ios::app | ios::out);
+//}
+//
+//void closeFstream() {
+//    if (counter > 1) return;
+//    plain_bef.close();
+//    plain_aft.close();
+//    cipher_bef.close();
+//    cipher_aft.close();
+//    mat_aft.close();
+//    mat_bef.close();
+//    dct_recover.close();
+//}void initFstream() {
 
-void closeFstream() {
-    if (counter > 1) return;
-    plain_bef.close();
-    plain_aft.close();
-    cipher_bef.close();
-    cipher_aft.close();
-    mat_aft.close();
-    mat_bef.close();
-    dct_recover.close();
-}
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
 {

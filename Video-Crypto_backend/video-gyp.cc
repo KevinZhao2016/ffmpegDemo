@@ -12,6 +12,7 @@ namespace Video {
     Mpeg mpeg = Mpeg();
     // std::string infile = args[0].As<String>().Utf8Value();
     // std::string outfile = args[1].As<String>().Utf8Value();
+    // mpeg.getWaterMark("/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/test.mp4");
     mpeg.encryptFrame("/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/test.mp4", "/Users/kevin/Desktop/ffmpegDemo/cmake-build-debug/test1.mp4");
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, "Hello, World!"));
   }
