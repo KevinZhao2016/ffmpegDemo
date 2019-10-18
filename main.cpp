@@ -152,12 +152,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 
                 }
 
-//                if (!frame->key_frame) {
-//                    uint8_t *mat = frame->data[0];
-//                    for (int j = 0; j < 1080 * 1920; ++j) {
-//                        mat[j] = keyMat[j];
-//                    }//非关键帧
-//                }
 
                 if (flag) {
                     for (int i = 0; i < 10; ++i) {
@@ -166,10 +160,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     cout << endl;
                 }
 
-
-//                Crypto crypto1 = Crypto();
-//                crypto1.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
-//                decrypt_frame(frame, crypto1.strong_en, crypto1.weak_en, height, frame->linesize[0]);
 
                 if (flag) {
                     for (int i = 0; i < 10; ++i) {
@@ -194,7 +184,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     start = clock();
                     //解密
                     Crypto crypto = Crypto();
-                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko", (unsigned char *) "Azuki azusa");
+                    crypto.initZUC((unsigned char *) "Tsutsukakushi tsukiko111", (unsigned char *) "Azuki azusa");
                     decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
                     cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
@@ -416,8 +406,8 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
     poutCodecCtx->time_base = (AVRational) {1, 30};
     poutCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
     poutCodecCtx->bit_rate = 1000*1000*50;
-    poutCodecCtx->qmax = 5;
-    poutCodecCtx->qmin = 0;
+    poutCodecCtx->qmax = 15;
+    poutCodecCtx->qmin = 1;
 //    poutCodecCtx->gop_size = 3;
     if (avcodec_open2(poutCodecCtx, penCodec, &param) < 0) {//打开编码器
         printf("Could not open encodec\n");
