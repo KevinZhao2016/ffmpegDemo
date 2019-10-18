@@ -33,9 +33,9 @@ public:
 
     pair<string, string> getKeyPair() {
         pair<string, string> key = crypto.GenKey();
-        cout << "public key :" << endl;
+        cout << "publicKey" << endl;
         cout << key.first << endl;
-        cout << "private key: " << endl;
+        cout << "privateKey" << endl;
         cout << key.second << endl;
         return key;
     };
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
             break;
     }
 
-//    mpeg.getKeyPair();
+    mpeg.getKeyPair();
 //    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry111.mp4");
 //    mpeg.decryptFrame("test_golf_cry.mp4", "golf_hf1.mp4");
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
