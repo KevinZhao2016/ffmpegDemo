@@ -116,30 +116,30 @@ int main(int argc, char *argv[]) {
     Mpeg mpeg = Mpeg();
     Base64 base64 = Base64();
     av_log_set_level(AV_LOG_QUIET);
-    switch (*argv[2]) {
+    switch (*argv[1]) {
         case '1':
-            mpeg.encryptFrame(argv[3], argv[4]);
+            mpeg.encryptFrame(argv[2], argv[3]);
             break;
         case '2':
-            mpeg.decryptFrame(argv[3], argv[4], argv[5], argv[6], argv[7]);
+            mpeg.decryptFrame(argv[2], argv[3], argv[4], argv[5], argv[6]);
             break;
         case '3':
-            cout << mpeg.getSign(argv[3], argv[4]) << endl;
+            cout << mpeg.getSign(argv[2], argv[3]) << endl;
             break;
         case '4':
-            mpeg.insertMark(argv[3], argv[4], argv[5]);
+            mpeg.insertMark(argv[2], argv[3], argv[4]);
             break;
         case '5':
-            cout << mpeg.getWaterMark(argv[3]) << endl;
+            cout << mpeg.getWaterMark(argv[2]) << endl;
             break;
         case '6':
-            cout << mpeg.verifySign(argv[3], argv[4], argv[5]) << endl;
+            cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
             break;
         case '7':
             mpeg.getKeyPair();
             break;
         default:
-            cout << argv[2] << endl;
+            cout << argv[1] << endl;
             break;
     }
 
