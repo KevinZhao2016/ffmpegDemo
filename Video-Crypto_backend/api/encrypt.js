@@ -43,7 +43,7 @@ router.post('/', (req, res) => {
         }
         let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
         let len = list.length;
-        let i = 0, status = 0;
+        let i = 0, status = 0, ans = 'failed';
         while(i < len) {
             if (wtf[i] === '') {
                 i++;
@@ -59,6 +59,8 @@ router.post('/', (req, res) => {
             } else if (list[i] === 'iv'){
                 i++;
                 status = 3;
+            } else if (list[i] === 'success') {
+                ans = 'success';
             }
 
             if (status ===  1) {
@@ -73,11 +75,20 @@ router.post('/', (req, res) => {
             }
         }
 
-
-        res.send({
-            status: '200',
-            msg: 'OK successfully encrypted.'
-        })
+        if (ans === 'success') {
+            res.send({
+                status: '200',
+                msg: 'OK successfully encrypted.',
+                strongkey: ret.strongkey,
+                weakkey: ret.weakkey,
+                iv: ret.iv
+            })
+        } else {
+            res.send({
+                status: '403',
+                msg: 'OK but encryption failed.'
+            })
+        }
     } catch(e) {
         console.log(e);
         res.send({
