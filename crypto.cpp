@@ -46,7 +46,7 @@ public:
             exit(1);
         }
 
-        group1 = EC_GROUP_new_by_curve_name(1121);//NID_sm2p256v1
+        group1 = EC_GROUP_new_by_curve_name(NID_sm2p256v1);//NID_sm2p256v1
 
         if (group1 == NULL) {
             cout << "Failed to Gen Key" << endl;
