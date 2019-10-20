@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const Config = require('../config/basic');
 const executor = require('child_process').execSync;
 ///const addon = require('Video')
 
@@ -22,14 +23,22 @@ router.post('/', (req, res) => {
             return;
         }
 
-        const ret = {}
-
-
-        res.send({
-            status: '200',
-            filename: ret.filename,
-            msg: 'OK successfully decrypted'
-        })
+        let wtf = executor(Config.relative_path + "/ffmpegDemo 2 " + msg.filename + " " + msg.key + " " + msg.iv).toString();
+        wtf = wtf.replace(/ /g, '').replace(/\r/g, '').replace(/\n/g, '');
+        const ret = { filename: '' };
+        ret.filename = msg.filename.slice(0, msg.filename.lastIndexOf('/')) + "decrypt_" + msg.filename.slice(msg.filename.lastIndexOf('/'), msg.filename.length);
+        if (wtf === 'success') {
+            res.send({
+                status: '200',
+                filename: ret.filename,
+                msg: 'OK successfully decrypted'
+            })
+        } else {
+            res.send({
+                status: '403',
+                msg: 'OK but failed to decrypt'
+            })
+        }
     } catch(e) {
         console.log(e);
         res.send({

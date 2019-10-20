@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
         let tmp = ret.privatekey;
         let wtf = executor(Config.relative_path + "/ffmpegDemo 7").toString().split('\n');
         const len = wtf.length;
-        let i = 0;
+        let i = 0, status = 0;
         while (i < len) {
             if (wtf[i] === '\r' || wtf[i] === '' || wtf[i] === ' '){
                 i++;
@@ -32,15 +32,18 @@ router.post('/', (req, res) => {
             }
             if (wtf[i] === 'privateKey') {
                 i++;
-                while(i < len) {
-                    ret.privatekey += wtf[i] + '\n';
-                }
+                status = 1;
             }
             if (wtf[i] === 'publicKey') {
                 i++;
-                while(i < len) {
-                    ret.publickey += wtf[i] + '\n';
-                }
+                status = 2;
+            }
+            if (status === 1) {
+                ret.privatekey += wtf[i] + '\n';
+                i++;
+            } else if (status === 2) {
+                ret.publickey += wtf[i] + '\n';
+                i++;
             }
         }
         res.send({

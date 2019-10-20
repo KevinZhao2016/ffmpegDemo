@@ -20,10 +20,10 @@ router.post('/', (req, res) => {
         **/
         //let ans = 0;
         let answer = executor(Config.relative_path + "/ffmpegDemo 6 " + msg.signature + " " + msg.publickey)
-            .toString()
-            .replace(' ', '')
-            .replace('\n', '')
-            .replace('\r', '');
+            .toString().trim()
+            .replace(/ /g, '')
+            .replace(/\n/g, '')
+            .replace(/\r/gs, '');
 
         if (answer === '1') {
             res.send({

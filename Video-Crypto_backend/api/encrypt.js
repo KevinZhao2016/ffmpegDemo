@@ -19,8 +19,8 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 router.post('/', (req, res) => {
     const msg = {
         filename: req.body.filename,
-        key: req.body.key,
-        iv: req.body.iv
+        privatekey: req.body.privatekey
+        //iv: req.body.iv
     }
     /*
      * do somework with c++.
@@ -34,6 +34,45 @@ router.post('/', (req, res) => {
             });
             return;
         }
+        let wtf = executor(Config.relative_path + '/ffmpegDemo 1 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString().trim();
+        let ret = {
+            strongkey: '',
+            weakkey: '',
+            iv: '',
+            filename: ''
+        }
+        let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
+        let len = list.length;
+        let i = 0, status = 0;
+        while(i < len) {
+            if (wtf[i] === '') {
+                i++;
+                continue;
+            }
+
+            if (list[i] === 'strongkey') {
+                i++;
+                status = 1;
+            } else if (list[i] === 'weakkey') {
+                i++;
+                status = 2;
+            } else if (list[i] === 'iv'){
+                i++;
+                status = 3;
+            }
+
+            if (status ===  1) {
+                ret.strongkey += wtf[i];
+                i++;
+            } else if (status === 2) {
+                ret.weakkey += wtf[i];
+                i++;
+            } else if (status === 3) {
+                ret.iv += wtf[i];
+                i++;
+            }
+        }
+
 
         res.send({
             status: '200',
