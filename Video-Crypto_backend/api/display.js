@@ -30,23 +30,37 @@ router.post('/', (req, res) => {
             show_payer: true
         }
         let ret = [];
-        return rpc.get_table_rows(rows).then(value => {
-            console.log(JSON.stringify(value, null, 2));
-            const list = value.rows;
+        request({
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            url: 'http://127.0.0.1:8000/v1/chain/get_table_rows',
+            body: JSON.stringify(rows)
+        }, (error, response, body) => {
+            if (error) {
+                console.log(error);
+                res.send({
+                    status: '403',
+                    msg: 'request error'
+                })
+            }
+            console.log(JSON.stringify(JSON.parse(body), null, 2));
+            const list = JSON.parse(body).rows;
             const len = list.length;
             for( i = 0; i < len; i++) {
                 ret.push({
-                    ID: list[i].data.ID,
-                    owner: list[i].data.owner,
-                    signature: list[i].data.sign,
-                    time: list[i].data.time
+                    ID: list[i].ID,
+                    owner: list[i].owner,
+                    signature: list[i].sign,
+                    time: list[i].time
                 })
             }
             res.send({
                 status: '200',
                 list: ret
             })
+
         })
+
     } catch (e) {
         console.log(e);
         res.send({

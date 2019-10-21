@@ -59,7 +59,7 @@ router.post('/', (req, res) => {
                 //return;
             }
             console.log(JSON.stringify(JSON.parse(body), null, 2));
-            const signature = JSON.parse(body).rows[0].data.sign;
+            const signature = JSON.parse(body).rows[0].sign;
             res.send({
                 status: '200',
                 msg: 'OK successfully get the signature',

@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
             .replace(/ /g, '')
             .replace(/\n/g, '')
             .replace(/\r/g, '');
-        console.log('Finished. Now returns...');
+        console.log('Finished with' + answer + '. Now returns...');
 
         if (answer === '1') {
             res.send({
