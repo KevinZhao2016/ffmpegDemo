@@ -180,7 +180,7 @@ router.post('/', (req, res) => {
                         publickey: ret.publickey,
                         privatekey: ret.privatekey,
                         iv: ret.iv
-                    }).end();
+                    });
                     console.log('resovled...');
                 }).catch(error => {
                     console.log(error);

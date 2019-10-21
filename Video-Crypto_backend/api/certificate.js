@@ -27,15 +27,20 @@ router.post('/', (req, res) => {
             .replace(/\r/g, '');
         console.log('Finished with' + answer + '. Now returns...');
 
-        if (answer === '1') {
+        if (answer[answer.length - 1] === '1') {
             res.send({
                 status: '200',
                 msg: 'Yes the signature is produced by the public key'
             })
-        } else if (answer === '0') {
+        } else if (answer[answer.length - 1] === '0') {
             res.send({
                 status: '403',
                 msg: 'Yes but the signature is not correspond with the publickey'
+            })
+        } else {
+            res.send({
+                status: '403',
+                msg: 'No the server cannot understand output.'
             })
         }
         console.log('resolved...');
