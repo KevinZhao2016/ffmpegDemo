@@ -181,6 +181,7 @@ router.post('/', (req, res) => {
                         privatekey: ret.privatekey,
                         iv: ret.iv
                     }).end();
+                    console.log('resovled...');
                 }).catch(error => {
                     console.log(error);
                     res.send({

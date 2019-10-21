@@ -46,8 +46,8 @@ router.post('/', (req, res) => {
         }
         request({
             method: 'POST',
-            header: {'content-type': 'application/json'},
-            url: 'http://127.0.0.1:8000/v1/chain/get_table_rows'
+            headers: {'content-type': 'application/json'},
+            url: 'http://127.0.0.1:8000/v1/chain/get_table_rows',
             body: row
         }, (error, response, body) => {
             if (error) {
