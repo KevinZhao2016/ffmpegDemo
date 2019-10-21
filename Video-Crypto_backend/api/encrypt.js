@@ -36,7 +36,9 @@ router.post('/', (req, res) => {
             return;
         }
         const filename = 'encrypt_' + msg.filename;
+        console.log('Get requests. Now Encryption...');
         let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
+        console.log('Encryption ended. Now split outputs...');
         let ret = {
             strongkey: '',
             weakkey: '',
@@ -97,12 +99,13 @@ router.post('/', (req, res) => {
                 i++;
             }
         }
-
+        console.log('split finished. Now marking it on blockchains...');
         if (ans === 'failed') {
             res.send({
                 status: '403',
                 msg: 'OK but encryption failed.'
-            })
+            });
+            return;
         }
 
         const options = {
@@ -130,6 +133,8 @@ router.post('/', (req, res) => {
                 accountInfo.publicKey = pk;
                 accountInfo.privateKey = sk;
 
+                console.log('got keys. Marking...');
+
                 const act = {
                     account: 'admin',
                     name: 'sign',
@@ -142,7 +147,6 @@ router.post('/', (req, res) => {
                         sign: pictureInfo.hash
                     }
                 };
-
                 return new Api({
                     rpc,
                     signatureProvider : new JsSignatureProvider([sk]),
