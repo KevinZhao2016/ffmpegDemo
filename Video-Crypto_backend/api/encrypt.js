@@ -51,6 +51,7 @@ router.post('/', (req, res) => {
         let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
         let len = list.length;
         let i = 0, status = 0, ans = 'failed';
+        console.log(list);
         while(i < len) {
             if (wtf[i] === '') {
                 i++;
@@ -81,23 +82,18 @@ router.post('/', (req, res) => {
 
             if (status ===  1) {
                 ret.strongkey += wtf[i];
-                i++;
             } else if (status === 2) {
                 ret.weakkey += wtf[i];
-                i++;
             } else if (status === 3) {
                 ret.iv += wtf[i];
-                i++;
             } else if (status === 4) {
                 ret.publickey += wtf[i];
-                i++;
             } else if (status === 5) {
                 ret.privatekey += wtf[i];
-                i++;
             } else if (status === 6) {
                 ret.signature += wtf[i];
-                i++;
             }
+            i++;
         }
         console.log('split finished. Now marking it on blockchains...');
         if (ans === 'failed') {
