@@ -40,13 +40,13 @@ router.post('/', (req, res) => {
             lower_bound: msg.id,
             scope: 'admin',
             limit: 1,
-            reverse: true,
-            show_payer: true
+            // reverse: true,
+            // show_payer: true
         }
 
         return rpc.get_table_rows(rows).then((value) => {
             console.log(JSON.stringify(value, null, 2));
-            const signature = value.rows[0].data.signature;
+            const signature = value.rows[0].data.sign;
             res.send({
                 status: '200',
                 msg: 'OK successfully get the signature',

@@ -33,6 +33,8 @@ public:
 
     pair<string, string> getKeyPair() {
         pair<string, string> key = crypto.GenKey();
+        PUBLIC_KEY = key.first;
+        PRIVATE_KEY = key.second;
         cout << "publicKey" << endl;
         cout << key.first << endl;
         cout << "privateKey" << endl;
@@ -77,6 +79,11 @@ public:
         cout << zucKey.second << endl;
         cout << "iv" << endl;
         cout << zuciv << endl;
+        getKeyPair();
+        string sign = getSign(infile,PRIVATE_KEY);
+        cout << "signature" << endl;
+        cout << sign << endl;
+        insertMark(infile,outfile,sign);
         cout << "success" << endl;
     }
 

@@ -143,10 +143,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                 if (frame->key_frame) {
                     clock_t start, ends;
                     start = clock();
-
                     Crypto crypto = Crypto();
-                    zucKey = crypto.randKey();
-                    zuciv = crypto.randKey().first;
                     crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
                                    (unsigned char *) zuciv.c_str());
                     //加密关键帧
@@ -399,6 +396,9 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
         return;
     }
     int count = 0;
+    Crypto crypto0 = Crypto();
+    zucKey = crypto0.randKey();
+    zuciv = crypto0.randKey().first;
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
             av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, mode, count);
