@@ -44,6 +44,29 @@ router.post('/', (req, res) => {
             // reverse: true,
             // show_payer: true
         }
+        request({
+            method: 'POST',
+            header: {'content-type': 'application/json'},
+            url: 'http://127.0.0.1:8000/v1/chain/get_table_rows'
+            body: row
+        }, (error, response, body) => {
+            if (error) {
+                console.log(error);
+                res.send({
+                    status: '403',
+                    msg: 'request error'
+                })
+                //return;
+            }
+            console.log(JSON.stringify(value, null, 2));
+            const signature = value.rows[0].data.sign;
+            res.send({
+                status: '200',
+                msg: 'OK successfully get the signature',
+                signature: signature
+            })
+        });
+        /*
         return rpc.get_table_rows(rows).then((value) => {
             console.log(JSON.stringify(value, null, 2));
             const signature = value.rows[0].data.sign;
@@ -59,7 +82,7 @@ router.post('/', (req, res) => {
                 msg: 'unexpected error'
             })
         })
-
+        */
     } catch(e) {
         res.send({
             status: '500',

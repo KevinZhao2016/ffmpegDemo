@@ -53,7 +53,12 @@ router.post('/', (req, res) => {
         let i = 0, status = 0, ans = 'failed';
         console.log(list);
         while(i < len) {
-            if (wtf[i] === '') {
+            if (list[i] === '') {
+                i++;
+                continue;
+            }
+            let j = 3 < list[i].length ? 3: list[i].length;
+            if (list[i].slice(0, j) === '---') {
                 i++;
                 continue;
             }
@@ -176,14 +181,12 @@ router.post('/', (req, res) => {
                         privatekey: ret.privatekey,
                         iv: ret.iv
                     }).end();
-                    return;
                 }).catch(error => {
                     console.log(error);
                     res.send({
                         status: '403',
                         msg: 'OK but encryption failed.'
                     })
-                    return;
                 });
             } catch(e) {
                 console.log(e);
