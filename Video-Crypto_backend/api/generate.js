@@ -22,7 +22,7 @@ router.post('/', (req, res) => {
             publickey: ""
         };
         let tmp = ret.privatekey;
-        let wtf = executor(Config.relative_path + "/ffmpegDemo 7").toString().split('\n');
+        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 7').toString().split('\n');
         const len = wtf.length;
         let i = 0, status = 0;
         while (i < len) {

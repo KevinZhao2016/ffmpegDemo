@@ -19,5 +19,18 @@ router.post('/pipe', (req, res) => {
     })
 })
 
+router.post('/giver', (req, res) => {
+    const ret = {
+        name: req.body.input + req.body.output,
+        value: "lilliana, the last hope"
+    }
+    console.log('giver got it.')
+
+    res.send({
+        status: '200',
+        ret: ret
+    })
+})
+
 
 module.exports = router;

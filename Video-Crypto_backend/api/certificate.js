@@ -19,7 +19,7 @@ router.post('/', (req, res) => {
         * do some work...
         **/
         //let ans = 0;
-        let answer = executor(Config.relative_path + "/ffmpegDemo 6 " + msg.signature + " " + msg.publickey)
+        let answer = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 6 ' + msg.signature + ' ' + msg.publickey)
             .toString().trim()
             .replace(/ /g, '')
             .replace(/\n/g, '')

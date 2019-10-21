@@ -23,7 +23,7 @@ router.post('/', (req, res) => {
             return;
         }
 
-        let wtf = executor(Config.relative_path + "/ffmpegDemo 2 " + msg.filename + " " + msg.key + " " + msg.iv).toString();
+        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 2 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString();
         wtf = wtf.replace(/ /g, '').replace(/\r/g, '').replace(/\n/g, '');
         const ret = { filename: '' };
         ret.filename = msg.filename.slice(0, msg.filename.lastIndexOf('/')) + "decrypt_" + msg.filename.slice(msg.filename.lastIndexOf('/'), msg.filename.length);
