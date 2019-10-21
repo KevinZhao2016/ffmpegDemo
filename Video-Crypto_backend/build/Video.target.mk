@@ -57,7 +57,9 @@ INCS_Debug := \
 	-I/Users/kevin/Library/Caches/node-gyp/12.10.0/deps/zlib \
 	-I/Users/kevin/Library/Caches/node-gyp/12.10.0/deps/v8/include \
 	-I/usr/local/Cellar/ffmpeg/4.1.4_2/include \
-	-I$(srcdir)/..
+	-I$(srcdir)/.. \
+	-I/usr/local/include/openssl \
+	-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include/openssl
 
 DEFS_Release := \
 	'-DNODE_GYP_MODULE_NAME=Video' \
@@ -111,7 +113,9 @@ INCS_Release := \
 	-I/Users/kevin/Library/Caches/node-gyp/12.10.0/deps/zlib \
 	-I/Users/kevin/Library/Caches/node-gyp/12.10.0/deps/v8/include \
 	-I/usr/local/Cellar/ffmpeg/4.1.4_2/include \
-	-I$(srcdir)/..
+	-I$(srcdir)/.. \
+	-I/usr/local/include/openssl \
+	-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include/openssl
 
 OBJS := \
 	$(obj).target/$(TARGET)/video-gyp.o

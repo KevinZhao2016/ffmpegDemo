@@ -34,7 +34,7 @@ router.post('/', (req, res) => {
             });
             return;
         }
-        let wtf = executor(Config.relative_path + '/ffmpegDemo 1 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString().trim();
+        let wtf = executor("cd " + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString().trim();
         let ret = {
             strongkey: '',
             weakkey: '',

@@ -7,6 +7,12 @@ const executor = require('child_process').execSync;
 * input: filename, output: signature
 **/
 
+router.all('*', function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
 
 router.post('/', (req, res) => {
     const msg = {
@@ -18,7 +24,7 @@ router.post('/', (req, res) => {
         * */
 
         let ret = { siganture: "" };
-        ret.siganture = executor(Config.relative_path + "/ffmpegDemo 5 " + msg.filename).toString();
+        ret.siganture = executor("cd " + Config.relative_path + " && ./ffmpegDemo 5 " + msg.filename).toString();
 
         res.send({
             status: '200',

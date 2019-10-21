@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const request = require('request');
 const Config = require('../config/basic');
+const executor = require('child_process').execSync;
 
 const { Api, JsonRpc, RpcError, Numeric } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
@@ -16,6 +17,12 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 
 const Ecc = require('eosjs-ecc');
 
+router.all('*', function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
 router.post('/', async (req, res) => {
     try {
         const msg = {
@@ -119,12 +126,7 @@ router.post('/', async (req, res) => {
                     },
                 }
                 console.log(JSON.stringify(act, null , 2));
-                return api.transact({
-                    actions: [act]
-                }, {
-                    blocksBehind: 3,
-                    expireSeconds: 30,
-                })
+                return executor('cleos --wallet-url http://127.0.0.1:6666 --url http://127.0.0.1:8000 create account eosio '+msg.name+" "+accountInfo.publicKey)
             } catch(e) {
                 console.log(e);
                 res.send({
