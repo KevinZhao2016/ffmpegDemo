@@ -23,7 +23,7 @@ router.post('/', (req, res) => {
             .toString().trim()
             .replace(/ /g, '')
             .replace(/\n/g, '')
-            .replace(/\r/gs, '');
+            .replace(/\r/g, '');
 
         if (answer === '1') {
             res.send({

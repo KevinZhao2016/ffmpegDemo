@@ -6,7 +6,8 @@ const executor = require('child_process').execSync;
 router.post('/', (req, res) => {
     const msg = {
         filename: req.body.filename,
-        key: req.body.key,
+        strongkey: req.body.strongkey,
+        weakkey: req.body.weakkey,
         iv: req.body.iv
     }
 
@@ -26,7 +27,8 @@ router.post('/', (req, res) => {
         let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 2 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString();
         wtf = wtf.replace(/ /g, '').replace(/\r/g, '').replace(/\n/g, '');
         const ret = { filename: '' };
-        ret.filename = msg.filename.slice(0, msg.filename.lastIndexOf('/')) + "decrypt_" + msg.filename.slice(msg.filename.lastIndexOf('/'), msg.filename.length);
+        ret.filename = 'decrypt_' + msg.filename;
+        //ret.filename = msg.filename.slice(0, msg.filename.lastIndexOf('/')) + "decrypt_" + msg.filename.slice(msg.filename.lastIndexOf('/'), msg.filename.length);
         if (wtf === 'success') {
             res.send({
                 status: '200',

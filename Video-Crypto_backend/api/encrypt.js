@@ -19,9 +19,10 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 router.post('/', (req, res) => {
     const msg = {
         filename: req.body.filename,
-        privatekey: req.body.privatekey
+        //privatekey: req.body.privatekey
         //iv: req.body.iv
-    }
+    };
+    let accountInfo = {};
     /*
      * do somework with c++.
      **/
@@ -34,12 +35,15 @@ router.post('/', (req, res) => {
             });
             return;
         }
-        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + msg.key + ' ' + msg.iv).toString().trim();
+        const filename = 'encrypt_' + msg.filename;
+        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
         let ret = {
             strongkey: '',
             weakkey: '',
             iv: '',
-            filename: ''
+            publickey: '',
+            privatekey: '',
+            filename: filename
         }
         let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
         let len = list.length;
@@ -61,6 +65,12 @@ router.post('/', (req, res) => {
                 status = 3;
             } else if (list[i] === 'success') {
                 ans = 'success';
+            } else if (list[i] === 'publickey') {
+                i++;
+                status = 4;
+            } else if (list[i] === 'privatekey') {
+                i++;
+                status = 5;
             }
 
             if (status ===  1) {
@@ -72,23 +82,97 @@ router.post('/', (req, res) => {
             } else if (status === 3) {
                 ret.iv += wtf[i];
                 i++;
+            } else if (status === 4) {
+                ret.publickey += wtf[i];
+                i++;
+            } else if (status === 5) {
+                ret.privatekey += wtf[i];
+                i++;
             }
         }
 
-        if (ans === 'success') {
-            res.send({
-                status: '200',
-                msg: 'OK successfully encrypted.',
-                strongkey: ret.strongkey,
-                weakkey: ret.weakkey,
-                iv: ret.iv
-            })
-        } else {
+        if (ans === 'failed') {
             res.send({
                 status: '403',
                 msg: 'OK but encryption failed.'
             })
         }
+
+        const options = {
+            method: 'POST',
+            url: 'http://127.0.0.1:6666/v1/wallet/list_keys',
+            header: {'content-type': 'application/json'},
+            body: JSON.stringify([Config.userName, Config.walletKey])
+        };
+        request(options, (error, response, body) => {
+            if (error) {
+                console.log(error);
+                reject('Can\'t get the keys.Please checkout if you are signed in.');
+                return;
+            }
+            try {
+                console.log('wallet response: ');
+                console.log(body);
+                console.log('*********************************************');
+                if (typeof (body) === 'string' && body[0] === '<') {
+                    throw new Error('smart server error!');
+                    return;
+                }
+                const pk = JSON.parse(body)[0][0];
+                const sk = JSON.parse(body)[0][1];
+                accountInfo.publicKey = pk;
+                accountInfo.privateKey = sk;
+
+                const act = {
+                    account: 'admin',
+                    name: 'sign',
+                    authorization: [{
+                        actor: msg.name,
+                        permission: 'active'
+                    }],
+                    data: {
+                        owner: msg.owner,
+                        sign: pictureInfo.hash
+                    }
+                };
+
+                return new Api({
+                    rpc,
+                    signatureProvider : new JsSignatureProvider([sk]),
+                    textDecoder: new TextDecoder(),
+                    textEncoder: new TextEncoder()
+                }).transact({
+                    actions: [act]
+                }, {
+                    blocksBehind: 3,
+                    expireSeconds: 30,
+                }).then(value => {
+                    console.log(value);
+                    res.send({
+                        status: '200',
+                        msg: 'OK successfully encrypted.',
+                        strongkey: ret.strongkey,
+                        weakkey: ret.weakkey,
+                        publickey: ret.publickey,
+                        privatekey: ret.privatekey,
+                        iv: ret.iv
+                    })
+                }).catch(error => {
+                    console.log(error);
+                    res.send({
+                        status: '403',
+                        msg: 'OK but encryption failed.'
+                    })
+                });
+            } catch(e) {
+                console.log(e);
+                res.send({
+                    status: '500',
+                    msg: 'something went wrong'
+                })
+            }
+        });
+
     } catch(e) {
         console.log(e);
         res.send({
