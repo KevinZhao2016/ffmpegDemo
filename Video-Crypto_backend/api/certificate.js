@@ -38,6 +38,7 @@ router.post('/', (req, res) => {
                 msg: 'Yes but the signature is not correspond with the publickey'
             })
         }
+        console.log('resolved...');
     } catch(e) {
         console.log(e);
         res.send({
