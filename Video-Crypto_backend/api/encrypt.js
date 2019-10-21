@@ -140,7 +140,7 @@ router.post('/', (req, res) => {
                     }],
                     data: {
                         owner: msg.owner,
-                        sign: pictureInfo.hash
+                        sign: ret.signature
                     }
                 };
                 return new Api({
