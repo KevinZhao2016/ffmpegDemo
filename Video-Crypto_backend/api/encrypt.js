@@ -92,6 +92,7 @@ router.post('/', (req, res) => {
                 ret.privatekey += wtf[i];
             } else if (status === 6) {
                 ret.signature += wtf[i];
+                status = 0;
             }
             i++;
         }
