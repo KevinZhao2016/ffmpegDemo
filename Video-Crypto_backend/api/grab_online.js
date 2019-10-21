@@ -58,8 +58,8 @@ router.post('/', (req, res) => {
                 })
                 //return;
             }
-            console.log(JSON.stringify(value, null, 2));
-            const signature = value.rows[0].data.sign;
+            console.log(JSON.stringify(body, null, 2));
+            const signature = body.rows[0].data.sign;
             res.send({
                 status: '200',
                 msg: 'OK successfully get the signature',
