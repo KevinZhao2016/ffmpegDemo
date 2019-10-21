@@ -43,6 +43,7 @@ router.post('/', (req, res) => {
             iv: '',
             publickey: '',
             privatekey: '',
+            signature: '',
             filename: filename
         }
         let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
@@ -71,6 +72,9 @@ router.post('/', (req, res) => {
             } else if (list[i] === 'privatekey') {
                 i++;
                 status = 5;
+            } else if (list[i] === 'signature') {
+                i++;
+                status = 6;
             }
 
             if (status ===  1) {
@@ -87,6 +91,9 @@ router.post('/', (req, res) => {
                 i++;
             } else if (status === 5) {
                 ret.privatekey += wtf[i];
+                i++;
+            } else if (status === 6) {
+                ret.signature += wtf[i];
                 i++;
             }
         }
