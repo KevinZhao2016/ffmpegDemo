@@ -59,7 +59,7 @@ public:
 
     int verifySign(const char *file, string sign, string publicKey) {
         strcpy(this->inpath, file);
-        PUBLIC_KEY = publicKey;
+        PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n" + publicKey + "\n-----END PUBLIC KEY-----";
         sig.size = base64.Decode(sign.c_str(), sig.message);
 //        cout << sig.size << endl;
         Open_In_fine(inpath, videoidx, audioidx, ic);
@@ -80,10 +80,11 @@ public:
         cout << "iv" << endl;
         cout << zuciv << endl;
         getKeyPair();
-        string sign = getSign(infile,PRIVATE_KEY);
+        string sign = getSign(infile, PRIVATE_KEY);
         cout << "signature" << endl;
         cout << sign << endl;
-        insertMark(infile,outfile,sign);
+        string out = outfile;
+        insertMark(outfile, ("sign_" + out).c_str(), sign);
         cout << "success" << endl;
     }
 
@@ -140,6 +141,7 @@ int main(int argc, char *argv[]) {
             cout << mpeg.getWaterMark(argv[2]) << endl;
             break;
         case '6':
+//            cout << argv[4] << endl;
             cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
             break;
         case '7':
@@ -156,6 +158,6 @@ int main(int argc, char *argv[]) {
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
 //    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("test1.mp4") << endl;
-//    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B",PUBLIC_KEY) << endl;
+//    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
     return 0;
 }

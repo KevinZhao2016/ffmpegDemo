@@ -133,12 +133,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 //            fcount++;
 //            frame->pict_type = AV_PICTURE_TYPE_I;
             if (mode == 1) {
-//                if (flag) {
-//                    for (int i = 0; i < 10; ++i) {
-//                        cout << (int) frame->data[0][i] << " ";
-//                    }
-//                    cout << endl;
-//                }
 
                 if (frame->key_frame) {
                     clock_t start, ends;
@@ -154,23 +148,8 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                 }
 
 
-//                if (flag) {
-//                    for (int i = 0; i < 10; ++i) {
-//                        cout << (int) frame->data[0][i] << " ";
-//                    }
-//                    cout << endl;
-//                }
-
                 flag = false;
             } else if (mode == 0) {
-
-//                if (flag) {
-//                    for (int i = 0; i < 10; ++i) {
-//                        cout << (int) frame->data[0][i] << " ";
-//                    }
-//                    cout << endl;
-//                }
-
 
                 if (frame->key_frame) {
                     clock_t start, ends;
@@ -189,14 +168,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 //                        mat[j] = keyMat[j];
 //                    }//非关键帧
 //                }
-
-//                if (flag) {
-//                    for (int i = 0; i < 10; ++i) {
-//                        cout << (int) frame->data[0][i] << " ";
-//                    }
-//                    cout << endl;
-//                }
-
                 flag = false;
             }
 
@@ -396,9 +367,12 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
         return;
     }
     int count = 0;
-    Crypto crypto0 = Crypto();
-    zucKey = crypto0.randKey();
-    zuciv = crypto0.randKey().first;
+    if(mode == 1) {
+        Crypto crypto0 = Crypto();
+        zucKey = crypto0.randKey();
+        zuciv = crypto0.randKey().first;
+    }
+
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
             av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, mode, count);

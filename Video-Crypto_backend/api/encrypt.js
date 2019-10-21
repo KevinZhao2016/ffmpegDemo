@@ -48,7 +48,7 @@ router.post('/', (req, res) => {
             signature: '',
             filename: filename
         }
-        let list = wtf.replace(/\r/g, '').replace(/ /g, '').split('\n');
+        let list = wtf.replace(/\r/g, '').split('\n');
         let len = list.length;
         let i = 0, status = 0, ans = 'failed';
         console.log(list);
@@ -58,40 +58,48 @@ router.post('/', (req, res) => {
                 continue;
             }
 
-            if (list[i] === 'strongkey') {
+            if (list[i] === 'strongKey') {
                 i++;
                 status = 1;
-            } else if (list[i] === 'weakkey') {
+                continue;
+            } else if (list[i] === 'weakKey') {
                 i++;
                 status = 2;
+                continue;
             } else if (list[i] === 'iv'){
                 i++;
                 status = 3;
+                continue;
             } else if (list[i] === 'success') {
                 ans = 'success';
-            } else if (list[i] === 'publickey') {
+                i++;
+                continue;
+            } else if (list[i] === 'publicKey') {
                 i++;
                 status = 4;
-            } else if (list[i] === 'privatekey') {
+                continue;
+            } else if (list[i] === 'privateKey') {
                 i++;
                 status = 5;
+                continue;
             } else if (list[i] === 'signature') {
                 i++;
                 status = 6;
+                continue;
             }
 
             if (status ===  1) {
-                ret.strongkey += wtf[i];
+                ret.strongkey += list[i];
             } else if (status === 2) {
-                ret.weakkey += wtf[i];
+                ret.weakkey += list[i];
             } else if (status === 3) {
-                ret.iv += wtf[i];
+                ret.iv += list[i];
             } else if (status === 4) {
-                ret.publickey += wtf[i];
+                ret.publickey += list[i];
             } else if (status === 5) {
-                ret.privatekey += wtf[i];
+                ret.privatekey += list[i];
             } else if (status === 6) {
-                ret.signature += wtf[i];
+                ret.signature += list[i];
                 status = 0;
             }
             i++;
@@ -136,14 +144,15 @@ router.post('/', (req, res) => {
                     account: 'admin',
                     name: 'sign',
                     authorization: [{
-                        actor: msg.name,
+                        actor: Config.userName,
                         permission: 'active'
                     }],
                     data: {
-                        owner: msg.owner,
+                        owner: Config.userName,
                         sign: ret.signature
                     }
                 };
+                console.log(JSON.stringify(act,null,2))
                 return new Api({
                     rpc,
                     signatureProvider : new JsSignatureProvider([sk]),
@@ -156,6 +165,8 @@ router.post('/', (req, res) => {
                     expireSeconds: 30,
                 }).then(value => {
                     console.log(value);
+                    console.log("finish");
+                    console.log(ret);
                     res.send({
                         status: '200',
                         msg: 'OK successfully encrypted.',
@@ -164,20 +175,22 @@ router.post('/', (req, res) => {
                         publickey: ret.publickey,
                         privatekey: ret.privatekey,
                         iv: ret.iv
-                    })
+                    }).end();
+                    return;
                 }).catch(error => {
                     console.log(error);
                     res.send({
                         status: '403',
                         msg: 'OK but encryption failed.'
                     })
+                    return;
                 });
             } catch(e) {
                 console.log(e);
                 res.send({
                     status: '500',
                     msg: 'something went wrong'
-                })
+                }).end();
             }
         });
 

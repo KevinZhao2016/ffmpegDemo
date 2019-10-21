@@ -20,7 +20,7 @@ router.post('/', (req, res) => {
         **/
         //let ans = 0;
         console.log('Got requests. Now certification...');
-        let answer = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 6 ' + msg.signature + ' ' + msg.publickey)
+        let answer = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 6 ' + msg.filename + ' ' + msg.signature + ' ' + msg.publickey)
             .toString().trim()
             .replace(/ /g, '')
             .replace(/\n/g, '')
