@@ -24,8 +24,9 @@ router.post('/', (req, res) => {
         * */
 
         let ret = { siganture: "" };
+        console.log('Got requests. Now grabbing signatures...');
         ret.siganture = executor("cd " + Config.relative_path + " && ./ffmpegDemo 5 " + msg.filename).toString();
-
+        console.log('grabbing finished. Now returns...');
         res.send({
             status: '200',
             siganture: ret.siganture,

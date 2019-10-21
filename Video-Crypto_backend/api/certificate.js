@@ -19,11 +19,13 @@ router.post('/', (req, res) => {
         * do some work...
         **/
         //let ans = 0;
+        console.log('Got requests. Now certification...');
         let answer = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 6 ' + msg.signature + ' ' + msg.publickey)
             .toString().trim()
             .replace(/ /g, '')
             .replace(/\n/g, '')
             .replace(/\r/g, '');
+        console.log('Finished. Now returns...');
 
         if (answer === '1') {
             res.send({

@@ -33,6 +33,7 @@ router.post('/', (req, res) => {
             });
             return;
         }
+        console.log('Got requests. Now Grabbing online...');
         const row = {
             json: true,
             code: 'admin',
@@ -43,7 +44,6 @@ router.post('/', (req, res) => {
             reverse: true,
             show_payer: true
         }
-
         return rpc.get_table_rows(rows).then((value) => {
             console.log(JSON.stringify(value, null, 2));
             const signature = value.rows[0].data.signature;
