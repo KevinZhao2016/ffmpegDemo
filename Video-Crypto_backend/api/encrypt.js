@@ -173,7 +173,7 @@ router.post('/', (req, res) => {
             console.log(JSON.stringify(act,null,2));
             return new Api({
                 rpc,
-                signatureProvider : new JsSignatureProvider([sk]),
+                signatureProvider : new JsSignatureProvider([accountInfo.privateKey]),
                 textDecoder: new TextDecoder(),
                 textEncoder: new TextEncoder()
             }).transact({
