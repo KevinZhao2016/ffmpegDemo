@@ -117,6 +117,7 @@ router.post('/', (req, res) => {
             });
             return;
         }
+        /*
         res.send({
             status: '200',
             msg: 'ok encryption succeeded.',
@@ -127,20 +128,20 @@ router.post('/', (req, res) => {
             iv: ret.iv
         });
         console.log('now blockchain...');
-
+        */
         const options = {
             method: 'POST',
             url: 'http://127.0.0.1:6666/v1/wallet/list_keys',
             header: {'content-type': 'application/json'},
             body: JSON.stringify([Config.userName, Config.walletKey])
         };
-        request(options, (error, response, body) => {
-            if (error) {
-                console.log(error);
-                reject('Can\'t get the keys.Please checkout if you are signed in.');
-                return;
-            }
-            try {
+        return new Promise((resolve, reject) => {
+            request(options, (error, response, body) => {
+                if (error) {
+                    console.log(error);
+                    reject('Can\'t get the keys.Please checkout if you are signed in.');
+                    return;
+                }
                 console.log('wallet response: ');
                 console.log(body);
                 console.log('*********************************************');
@@ -154,68 +155,54 @@ router.post('/', (req, res) => {
                 accountInfo.privateKey = sk;
 
                 console.log('got keys. Marking...');
-
-                const act = {
-                    account: 'admin',
-                    name: 'sign',
-                    authorization: [{
-                        actor: Config.userName,
-                        permission: 'active'
-                    }],
-                    data: {
-                        owner: Config.userName,
-                        sign: ret.signature
-                    }
-                };
-                console.log(JSON.stringify(act,null,2))
-                return new Api({
-                    rpc,
-                    signatureProvider : new JsSignatureProvider([sk]),
-                    textDecoder: new TextDecoder(),
-                    textEncoder: new TextEncoder()
-                }).transact({
-                    actions: [act]
-                }, {
-                    blocksBehind: 3,
-                    expireSeconds: 30,
-                }).then(value => {
-                    console.log(value);
-                    console.log("finish");
-                    console.log(ret);
-                    console.log(typeof res);
-                    res.json({
-                        status: '200',
-                        msg: 'OK successfully encrypted.',
-                        strongkey: ret.strongkey,
-                        weakkey: ret.weakkey,
-                        publickey: ret.publickey,
-                        privatekey: ret.privatekey,
-                        iv: ret.iv
-                    });
-                    res.send({
-                        status: '200',
-                        msg: 'OK successfully encrypted.',
-                        strongkey: ret.strongkey,
-                        weakkey: ret.weakkey,
-                        publickey: ret.publickey,
-                        privatekey: ret.privatekey,
-                        iv: ret.iv
-                    });
-                    console.log('resovled...');
-                })/*.catch(error => {
-                    console.log(error);
-                    res.send({
-                        status: '403',
-                        msg: 'OK but encryption failed.'
-                    })
-                });*/
-            } catch(e) {
-                console.log(e);
+                resolve();
+            });
+        }).then(() => {
+            const act = {
+                account: 'admin',
+                name: 'sign',
+                authorization: [{
+                    actor: Config.userName,
+                    permission: 'active'
+                }],
+                data: {
+                    owner: Config.userName,
+                    sign: ret.signature
+                }
+            };
+            console.log(JSON.stringify(act,null,2));
+            return new Api({
+                rpc,
+                signatureProvider : new JsSignatureProvider([sk]),
+                textDecoder: new TextDecoder(),
+                textEncoder: new TextEncoder()
+            }).transact({
+                actions: [act]
+            }, {
+                blocksBehind: 3,
+                expireSeconds: 30,
+            })
+        }).then(value => {
+            console.log(value);
+            console.log("finish");
+            console.log(ret);
+            console.log(typeof res);
+            res.send({
+                status: '200',
+                msg: 'OK successfully encrypted.',
+                strongkey: ret.strongkey,
+                weakkey: ret.weakkey,
+                publickey: ret.publickey,
+                privatekey: ret.privatekey,
+                iv: ret.iv
+            });
+            console.log('resovled...');
+        }).catch(error => {
+                console.log(error);
                 res.send({
-                    status: '500',
-                    msg: 'something went wrong'
-                }).end();
-            }
+                    status: '403',
+                    msg: 'OK but encryption failed.'
+                })
         });
 
     } catch(e) {
