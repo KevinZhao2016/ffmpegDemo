@@ -117,6 +117,16 @@ router.post('/', (req, res) => {
             });
             return;
         }
+        res.send({
+            status: '200',
+            msg: 'ok encryption succeeded.',
+            strongkey: ret.strongkey,
+            weakkey: ret.weakkey,
+            publickey: ret.publickey,
+            privatekey: ret.privatekey,
+            iv: ret.iv
+        });
+        console.log('now blockchain...');
 
         const options = {
             method: 'POST',
@@ -172,6 +182,16 @@ router.post('/', (req, res) => {
                     console.log(value);
                     console.log("finish");
                     console.log(ret);
+                    console.log(typeof res);
+                    res.json({
+                        status: '200',
+                        msg: 'OK successfully encrypted.',
+                        strongkey: ret.strongkey,
+                        weakkey: ret.weakkey,
+                        publickey: ret.publickey,
+                        privatekey: ret.privatekey,
+                        iv: ret.iv
+                    });
                     res.send({
                         status: '200',
                         msg: 'OK successfully encrypted.',
@@ -182,13 +202,13 @@ router.post('/', (req, res) => {
                         iv: ret.iv
                     });
                     console.log('resovled...');
-                }).catch(error => {
+                })/*.catch(error => {
                     console.log(error);
                     res.send({
                         status: '403',
                         msg: 'OK but encryption failed.'
                     })
-                });
+                });*/
             } catch(e) {
                 console.log(e);
                 res.send({
