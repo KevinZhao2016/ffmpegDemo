@@ -53,113 +53,104 @@ router.post('/', (req, res) => {
         }
         
         console.log('Get requests. Now Encryption...');
-        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
-        console.log('Encryption ended. Now split outputs...');
-
-        let list = wtf.replace(/\r/g, '').split('\n');
-        let len = list.length;
-        let i = 0, status = 0, ans = 'failed';
-        console.log(list);
-        while(i < len) {
-            if (list[i] === '') {
-                i++;
-                continue;
-            }
-            let j = 3 < list[i].length ? 3: list[i].length;
-            if (list[i].slice(0, j) === '---') {
-                i++;
-                continue;
-            }
-
-            if (list[i] === 'strongKey') {
-                i++;
-                status = 1;
-                continue;
-            } else if (list[i] === 'weakKey') {
-                i++;
-                status = 2;
-                continue;
-            } else if (list[i] === 'iv'){
-                i++;
-                status = 3;
-                continue;
-            } else if (list[i] === 'success') {
-                ans = 'success';
-                i++;
-                continue;
-            } else if (list[i] === 'publicKey') {
-                i++;
-                status = 4;
-                continue;
-            } else if (list[i] === 'privateKey') {
-                i++;
-                status = 5;
-                continue;
-            } else if (list[i] === 'signature') {
-                i++;
-                status = 6;
-                continue;
-            }
-
-            if (status ===  1) {
-                ret.strongkey += list[i];
-            } else if (status === 2) {
-                ret.weakkey += list[i];
-            } else if (status === 3) {
-                ret.iv += list[i];
-            } else if (status === 4) {
-                ret.publickey += list[i];
-            } else if (status === 5) {
-                ret.privatekey += list[i];
-            } else if (status === 6) {
-                ret.signature += list[i];
-                status = 0;
-            }
-            i++;
-        }
-        console.log('split finished. Now marking it on blockchains...');
-        if (ans === 'failed') {
-            res.send({
-                status: '403',
-                msg: 'OK but encryption failed.'
-            });
-            return;
-        }
-        /*
-        res.send({
-            status: '200',
-            msg: 'ok encryption succeeded.',
-            strongkey: ret.strongkey,
-            weakkey: ret.weakkey,
-            publickey: ret.publickey,
-            privatekey: ret.privatekey,
-            iv: ret.iv
-        });
-        console.log('now blockchain...');
-        */
- 
         return new Promise((resolve, reject) => {
-            request(options, (error, response, body) => {
-                if (error) {
-                    console.log(error);
-                    reject('Can\'t get the keys.Please checkout if you are signed in.');
-                    return;
-                }
-                console.log('wallet response: ');
-                console.log(body);
-                console.log('*********************************************');
-                if (typeof (body) === 'string' && body[0] === '<') {
-                    throw new Error('smart server error!');
-                    return;
-                }
-                const pk = JSON.parse(body)[0][0];
-                const sk = JSON.parse(body)[0][1];
-                accountInfo.publicKey = pk;
-                accountInfo.privateKey = sk;
+            let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
+            console.log('Encryption ended. Now split outputs...');
 
-                console.log('got keys. Marking...');
-                resolve();
-            });
+            let list = wtf.replace(/\r/g, '').split('\n');
+            let len = list.length;
+            let i = 0, status = 0, ans = 'failed';
+            console.log(list);
+            while(i < len) {
+                if (list[i] === '') {
+                    i++;
+                    continue;
+                }
+                let j = 3 < list[i].length ? 3: list[i].length;
+                if (list[i].slice(0, j) === '---') {
+                    i++;
+                    continue;
+                }
+
+                if (list[i] === 'strongKey') {
+                    i++;
+                    status = 1;
+                    continue;
+                } else if (list[i] === 'weakKey') {
+                    i++;
+                    status = 2;
+                    continue;
+                } else if (list[i] === 'iv'){
+                    i++;
+                    status = 3;
+                    continue;
+                } else if (list[i] === 'success') {
+                    ans = 'success';
+                    i++;
+                    continue;
+                } else if (list[i] === 'publicKey') {
+                    i++;
+                    status = 4;
+                    continue;
+                } else if (list[i] === 'privateKey') {
+                    i++;
+                    status = 5;
+                    continue;
+                } else if (list[i] === 'signature') {
+                    i++;
+                    status = 6;
+                    continue;
+                }
+
+                if (status ===  1) {
+                    ret.strongkey += list[i];
+                } else if (status === 2) {
+                    ret.weakkey += list[i];
+                } else if (status === 3) {
+                    ret.iv += list[i];
+                } else if (status === 4) {
+                    ret.publickey += list[i];
+                } else if (status === 5) {
+                    ret.privatekey += list[i];
+                } else if (status === 6) {
+                    ret.signature += list[i];
+                    status = 0;
+                }
+                i++;
+            }
+            console.log('split finished. Now marking it on blockchains...');
+            if (ans === 'failed') {
+                res.send({
+                    status: '403',
+                    msg: 'OK but encryption failed.'
+                });
+                reject();
+            }
+            resolve();
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                request(options, (error, response, body) => {
+                    if (error) {
+                        console.log(error);
+                        reject('Can\'t get the keys.Please checkout if you are signed in.');
+                        return;
+                    }
+                    console.log('wallet response: ');
+                    console.log(body);
+                    console.log('*********************************************');
+                    if (typeof (body) === 'string' && body[0] === '<') {
+                        throw new Error('smart server error!');
+                        return;
+                    }
+                    const pk = JSON.parse(body)[0][0];
+                    const sk = JSON.parse(body)[0][1];
+                    accountInfo.publicKey = pk;
+                    accountInfo.privateKey = sk;
+
+                    console.log('got keys. Marking...');
+                    resolve();
+                });
+            })
         }).then(() => {
             const act = {
                 account: 'admin',
@@ -201,11 +192,11 @@ router.post('/', (req, res) => {
             });
             console.log('resovled...');
         }).catch(error => {
-                console.log(error);
-                res.send({
-                    status: '403',
-                    msg: 'OK but encryption failed.'
-                })
+            console.log(error);
+            res.send({
+                status: '403',
+                msg: 'OK but encryption failed.'
+            })
         });
 
     } catch(e) {
