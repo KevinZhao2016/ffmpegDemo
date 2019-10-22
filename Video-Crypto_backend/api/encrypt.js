@@ -23,6 +23,22 @@ router.post('/', (req, res) => {
         //iv: req.body.iv
     };
     let accountInfo = {};
+    const options = {
+        method: 'POST',
+        url: 'http://127.0.0.1:6666/v1/wallet/list_keys',
+        header: {'content-type': 'application/json'},
+        body: JSON.stringify([Config.userName, Config.walletKey])
+    };
+    const filename = 'encrypt_' + msg.filename;
+    let ret = {
+        strongkey: '',
+        weakkey: '',
+        iv: '',
+        publickey: '',
+        privatekey: '',
+        signature: '',
+        filename: filename
+    }
     /*
      * do somework with c++.
      **/
@@ -35,19 +51,11 @@ router.post('/', (req, res) => {
             });
             return;
         }
-        const filename = 'encrypt_' + msg.filename;
+        
         console.log('Get requests. Now Encryption...');
         let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
         console.log('Encryption ended. Now split outputs...');
-        let ret = {
-            strongkey: '',
-            weakkey: '',
-            iv: '',
-            publickey: '',
-            privatekey: '',
-            signature: '',
-            filename: filename
-        }
+
         let list = wtf.replace(/\r/g, '').split('\n');
         let len = list.length;
         let i = 0, status = 0, ans = 'failed';
@@ -129,12 +137,7 @@ router.post('/', (req, res) => {
         });
         console.log('now blockchain...');
         */
-        const options = {
-            method: 'POST',
-            url: 'http://127.0.0.1:6666/v1/wallet/list_keys',
-            header: {'content-type': 'application/json'},
-            body: JSON.stringify([Config.userName, Config.walletKey])
-        };
+ 
         return new Promise((resolve, reject) => {
             request(options, (error, response, body) => {
                 if (error) {
