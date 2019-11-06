@@ -1,6 +1,7 @@
 //
 // Created by KevinZhao on 2019/9/24.
 //
+#include "base_64.h"
 #include <iostream>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -170,32 +171,15 @@ public:
     }
 
     void initZUC(unsigned char *strong_key, unsigned char *weak_key, unsigned char *iv) {
-        const unsigned char *strong_iv = (unsigned char *) "strong_iv", *weak_iv = (unsigned char *) "weak_iv";
+//        const unsigned char *strong_iv = (unsigned char *) "strong_iv", *weak_iv = (unsigned char *) "weak_iv";
         this->strong_en = EVP_CIPHER_CTX_new();
         this->weak_en = EVP_CIPHER_CTX_new();
 
-        EVP_EncryptInit(strong_en, EVP_zuc(),  strong_key, strong_iv);
-        EVP_EncryptInit(weak_en, EVP_zuc(),  weak_key, weak_iv);
+        EVP_EncryptInit(strong_en, EVP_zuc(), strong_key, iv);
+        EVP_EncryptInit(weak_en, EVP_zuc(), weak_key, iv);
     }
 
-    pair<string, string> randKey() {
-        string strong_key, weak_key;
-        const int SIZE_CHAR = 10; //生成10 + 1位C Style字符串
-        const unsigned char CCH[] = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-        srand((unsigned) time(nullptr));
-        unsigned char ch[SIZE_CHAR + 1] = {0};
-        for (int i = 0; i < SIZE_CHAR; ++i) {
-            int x = rand() / (RAND_MAX / (sizeof(CCH) - 1));
-            ch[i] = CCH[x];
-        }
-        strong_key = (char *)ch;
-        for (int i = 0; i < SIZE_CHAR; ++i) {
-            int x = rand() / (RAND_MAX / (sizeof(CCH) - 1));
-            ch[i] = CCH[x];
-        }
-        weak_key = (char *)ch;
-        return pair<string, string>(strong_key, weak_key);
-    }
+
 
     void printError() {
         char errBuf[512] = {0};
@@ -204,3 +188,5 @@ public:
     }
 
 };
+
+

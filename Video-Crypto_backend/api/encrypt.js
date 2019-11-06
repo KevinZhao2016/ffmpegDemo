@@ -125,8 +125,19 @@ router.post('/', (req, res) => {
                     msg: 'OK but encryption failed.'
                 });
                 reject();
+            }else{
+                res.send({
+                    status: '200',
+                    msg: 'OK successfully encrypted.',
+                    strongkey: ret.strongkey,
+                    weakkey: ret.weakkey,
+                    publickey: ret.publickey,
+                    privatekey: ret.privatekey,
+                    iv: ret.iv
+                });
+                resolve();
             }
-            resolve();
+          
         }).then(() => {
             return new Promise((resolve, reject) => {
                 request(options, (error, response, body) => {
@@ -181,15 +192,15 @@ router.post('/', (req, res) => {
             console.log("finish");
             console.log(ret);
             console.log(typeof res);
-            res.send({
-                status: '200',
-                msg: 'OK successfully encrypted.',
-                strongkey: ret.strongkey,
-                weakkey: ret.weakkey,
-                publickey: ret.publickey,
-                privatekey: ret.privatekey,
-                iv: ret.iv
-            });
+            // res.send({
+            //     status: '200',
+            //     msg: 'OK successfully encrypted.',
+            //     strongkey: ret.strongkey,
+            //     weakkey: ret.weakkey,
+            //     publickey: ret.publickey,
+            //     privatekey: ret.privatekey,
+            //     iv: ret.iv
+            // });
             console.log('resovled...');
         }).catch(error => {
             console.log(error);

@@ -4,6 +4,8 @@
 #import "main.cpp"
 #include "global.h"
 
+using namespace std;
+
 class Mpeg {
 private:
     char inpath[40];
@@ -74,11 +76,11 @@ public:
         write_url_file(ic, oc, videoidx, audioidx, false, 1);
         close_ffmpeg(ic, oc);
         cout << "strongKey" << endl;
-        cout << zucKey.first << endl;
+        cout << zucStrongKey_base << endl;
         cout << "weakKey" << endl;
-        cout << zucKey.second << endl;
+        cout << zucWeakKey_base << endl;
         cout << "iv" << endl;
-        cout << zuciv << endl;
+        cout << zuciv_base << endl;
         getKeyPair();
         string sign = getSign(infile, PRIVATE_KEY);
         cout << "signature" << endl;
@@ -89,9 +91,9 @@ public:
     }
 
     void decryptFrame(const char *infile, const char *outfile, string strongKey, string weakKey, string iv) {
-        zucKey.first = strongKey;
-        zucKey.second = weakKey;
-        zuciv = iv;
+        zucStrongKey_base = strongKey;
+        zucWeakKey_base = weakKey;
+        zuciv_base = iv;
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
         write_url_file(ic, oc, videoidx, audioidx, false, 0);
@@ -122,7 +124,6 @@ public:
 
 int main(int argc, char *argv[]) {
     Mpeg mpeg = Mpeg();
-    Base64 base64 = Base64();
     av_log_set_level(AV_LOG_QUIET);
     switch (*argv[1]) {
         case '1':
@@ -141,7 +142,6 @@ int main(int argc, char *argv[]) {
             cout << mpeg.getWaterMark(argv[2]) << endl;
             break;
         case '6':
-//            cout << argv[4] << endl;
             cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
             break;
         case '7':
@@ -153,11 +153,11 @@ int main(int argc, char *argv[]) {
     }
 
 //    mpeg.getKeyPair();
-//    mpeg.encryptFrame("test_golf.mp4", "test_golf_cry111.mp4");
-//    mpeg.decryptFrame("test_golf_cry.mp4", "golf_hf1.mp4");
+//    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
+//    mpeg.decryptFrame("sign_test_golf_cry111.mp4", "golf_hf111.mp4","fmIZ1FtcBXD1/zsKeq63FVUToHc=","","9uVdP8gMlgPAGP1Qilt4WRcF+eI=");
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
 //    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
-//    cout << mpeg.getWaterMark("test1.mp4") << endl;
-//    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
+//    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
+//    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9XBXw11C2US0dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
     return 0;
 }

@@ -138,8 +138,10 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     clock_t start, ends;
                     start = clock();
                     Crypto crypto = Crypto();
-                    crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
-                                   (unsigned char *) zuciv.c_str());
+                    changeKey(zucStrongKey);
+                    changeKey(zucWeakKey);
+                    crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
+                                   (unsigned char *) zuciv);
                     //加密关键帧
                     encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
@@ -150,14 +152,16 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 
                 flag = false;
             } else if (mode == 0) {
-
+                changeKey(zucStrongKey);
+                changeKey(zucWeakKey);
                 if (frame->key_frame) {
                     clock_t start, ends;
                     start = clock();
                     //解密
                     Crypto crypto = Crypto();
-                    crypto.initZUC((unsigned char *) zucKey.first.c_str(), (unsigned char *) zucKey.second.c_str(),
-                                   (unsigned char *) zuciv.c_str());
+                    unsigned char strongKey[20], weakKey[20];
+                    crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
+                                   (unsigned char *) zuciv);
                     decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
@@ -227,7 +231,6 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
         if (pkt->stream_index == videoidx) {
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
                 if (count > 1)
-
                     crypto.UpdateSignBySM2(&pkt->pts, pkt->size);
                 count++;
             }
@@ -367,11 +370,16 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
         return;
     }
     int count = 0;
-    if(mode == 1) {
-        Crypto crypto0 = Crypto();
-        zucKey = crypto0.randKey();
-        zuciv = crypto0.randKey().first;
+    //生成密钥
+    if (mode == 1) {
+        zucStrongKey_base = randKey();
+        zucWeakKey_base = randKey();
+        zuciv_base = randKey();
     }
+    Base64 base64 = Base64();
+    base64.Decode(zucStrongKey_base.c_str(), zucStrongKey);
+    base64.Decode(zucWeakKey_base.c_str(), zucWeakKey);
+    base64.Decode(zuciv_base.c_str(), zuciv);
 
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {

@@ -5,6 +5,8 @@
 #ifndef FFMPEGDEMO_BASE_64_H
 #define FFMPEGDEMO_BASE_64_H
 
+#include <string>
+
 class Base64 {
 private:
     std::string _base64_table;
