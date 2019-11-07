@@ -1,9 +1,10 @@
 #include "framecrypto.h"
 
 #define debug2
-//#define debugloss
+#define debugloss
 #define debugZUC
 //#define non_frequency_check
+#define frequency_field
 
 #ifdef debugZUC
 #define MODE_ENCRYPT 0
@@ -32,28 +33,30 @@ static int counter = 0;
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
 fstream mat_bef, mat_aft;
 fstream dct_recover;
+void initFstream() {
+if (counter > 1) return;
+plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
+plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
+cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
+cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
+mat_bef.open("mat_bef.txt", ios::app | ios::out);
+mat_aft.open("mat_aft.txt", ios::app | ios::out);
+dct_recover.open("dct_recover.txt", ios::app | ios::out);
+}
+
+void closeFstream() {
+    if (counter > 1) return;
+    plain_bef.close();
+    plain_aft.close();
+    cipher_bef.close();
+    cipher_aft.close();
+    mat_aft.close();
+    mat_bef.close();
+    dct_recover.close();
+}
 #endif
 
-//if (counter > 1) return;
-//plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
-//plain_aft.open("plaintext_aft.txt", ios::app | ios::out);
-//cipher_bef.open("ciphertext_bef.txt", ios::app | ios::out);
-//cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
-//mat_bef.open("mat_bef.txt", ios::app | ios::out);
-//mat_aft.open("mat_aft.txt", ios::app | ios::out);
-//dct_recover.open("dct_recover.txt", ios::app | ios::out);
-//}
-//
-//void closeFstream() {
-//    if (counter > 1) return;
-//    plain_bef.close();
-//    plain_aft.close();
-//    cipher_bef.close();
-//    cipher_aft.close();
-//    mat_aft.close();
-//    mat_bef.close();
-//    dct_recover.close();
-//}void initFstream() {
+
 
 
 void initDctMat()  //计算8x8块的离散余弦变换系数
@@ -221,8 +224,8 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                         printf("multiple loss %d: %.5f -> %.5f\n", ++count2, slice[ii][jj], at(mat, i + ii, j + jj));
                     }
 #endif
-                    discrete_slice[ii][jj] = (uint8_t) floor(slice[ii][jj]);
-                    loss[ii][jj] = slice[ii][jj] - (float) discrete_slice[ii][jj];
+                    discrete_slice[ii][jj] = slice[ii][jj] > 0 ? (uint8_t) floor(slice[ii][jj]): 0;
+                    loss[ii][jj] = slice[ii][jj] > 0 ? slice[ii][jj] - (float) discrete_slice[ii][jj]: slice[ii][jj];
                 }
             }
 
