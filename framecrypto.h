@@ -31,6 +31,7 @@ extern "C" {
 
 #define STRONG_MASK 7
 #define WEAK_MASK 5
+#define MASK_LAYER 4
 
 using namespace std;
 

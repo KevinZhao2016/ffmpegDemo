@@ -74,6 +74,12 @@ void initDctMat()  //计算8x8块的离散余弦变换系数
 
 }
 
+void join_cipher(){
+
+}
+
+void grab_cipher(){}
+
 void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pixel *plaintext, int *plain_len,
                     crypto_mode mode = 0) {
     /*
@@ -244,16 +250,16 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                 for (int ii = layer; ii >= 0; ii--) {
 
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    strong_plaintext[strong_plaintext_pointer++] = discrete_slice[ii][layer - ii];
-                    at(mat, i + ii, j + layer - ii) -= discrete_slice[ii][layer - ii];
+                    strong_plaintext[strong_plaintext_pointer] = discrete_slice[ii][layer - ii] & ((1 << MASK_LAYER) - 1);
+                    at(mat, i + ii, j + layer - ii) -= strong_plaintext[strong_plaintext_pointer++];
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
 
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii];
-                    at(mat, i + ii, j + layer - ii) -= discrete_slice[ii][layer - ii];
+                    weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii] & ((1 << MASK_LAYER) - 1);
+                    at(mat, i + ii, j + layer - ii) -= weak_plaintext[strong_plaintext_pointer++];;
                 }
             }
         }
@@ -275,13 +281,13 @@ void idct_frame(float *mat, int __height, int __width) {
             for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    at(mat, i + ii, j + layer - ii) += strong_ciphertext[strong_ciphertext_counter++];
+                    at(mat, i + ii, j + layer - ii) += strong_ciphertext[strong_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    at(mat, i + ii, j + layer - ii) += weak_ciphertext[weak_ciphertext_counter++];
+                    at(mat, i + ii, j + layer - ii) += weak_ciphertext[weak_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
                 }
             }
 
