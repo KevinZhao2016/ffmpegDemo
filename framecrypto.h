@@ -25,14 +25,14 @@ extern "C" {
 #define at(m, x, y) m[(x) * (linelen) + (y)]
 
 
-#define STRONG_LAYER_START 0
+#define STRONG_LAYER_START 1
 #define STRONG_LAYER_END 8
 #define WEAK_LAYER_START 10
 #define WEAK_LAYER_END 10
 
 #define STRONG_MASK 7
 #define WEAK_MASK 5
-#define MASK_LAYER 4
+#define MASK_LAYER 5
 
 using namespace std;
 

@@ -133,7 +133,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 //            fcount++;
 //            frame->pict_type = AV_PICTURE_TYPE_I;
             if (mode == 1) {
-
                 if (frame->key_frame) {
                     clock_t start, ends;
                     start = clock();
@@ -147,8 +146,19 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
-                }
 
+                    if (frame->key_frame) {
+                        clock_t start, ends;
+                        start = clock();
+                        //解密
+                        Crypto crypto = Crypto();
+                        crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
+                                       (unsigned char *) zuciv);
+                        decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+                        ends = clock();
+//                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+                    }
+                }
 
                 flag = false;
             } else if (mode == 0) {
@@ -159,7 +169,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     start = clock();
                     //解密
                     Crypto crypto = Crypto();
-                    unsigned char strongKey[20], weakKey[20];
                     crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
                                    (unsigned char *) zuciv);
                     decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
@@ -386,7 +395,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
             av_decode_encode_frame(pCodecCtx, poutCodecCtx, ic, oc, pkt, frame, watermark, mode, count);
 //            cout << "__________" << endl;
 //            cout << "pkt flag " << pkt->flags << endl;
-            if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
+//            if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
 //                cout << "KEY_PKT" << endl;
 //                cout << pkt->size << endl;
 //                for (int i = 0; i < 40; ++i) {
@@ -398,7 +407,7 @@ void write_url_file(AVFormatContext *ic, AVFormatContext *oc, int &videoidx, int
 //                    fileHash[i] ^= dgst[i];
 //                }
 //                cout << endl;
-            }
+//            }
 //            av_write_frame(oc, pkt);  //todo
             continue;
         } else if (pkt->stream_index == audioidx) {

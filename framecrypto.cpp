@@ -137,7 +137,7 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
 #ifdef debugloss
         cerr << "(cipher_len, plain_len) is : " << *cipher_len << " " << *plain_len << "After DEcryption." << endl;
         for (int i = 0; i < *plain_len && counter < 2; i++) {
-            plain_aft << (int) plaintext[i] << endl;
+            plain_aft << (int) (plaintext[i] & ((1 << MASK_LAYER) - 1)) << endl;
         }
 #endif
         //strong_ciphertext_pointer = *plain_len;
@@ -267,7 +267,7 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                     if (slice[ii][layer - ii] >= 0)
                         at(mat, i + ii, j + layer - ii) -= strong_plaintext[strong_plaintext_pointer++];
                     else
-                        at(mat, i + ii, j + layer - ii) += strong_plaintext[strong_plaintext_pointer++]
+                        at(mat, i + ii, j + layer - ii) += strong_plaintext[strong_plaintext_pointer++];
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
@@ -332,7 +332,12 @@ void idct_frame(float *mat, int __height, int __width) {
             mat_mul((float *) res, (float *) A, (float *) slice, 8, 8, 8);
             for (int ii = 0; ii < 8; ii++) {
                 for (int jj = 0; jj < 8; jj++) {
-                    at(mat, i + ii, j + jj) = floor(slice[ii][jj]);
+                    if (fabs(slice[ii][jj] - 255.0) < 1e-2)
+                        at(mat, i + ii, j + jj) = 255.0;
+                    else if (fabs(slice[ii][jj]) < 1e-2)
+                        at(mat, i + ii, j + jj) = 0;
+                    else
+                        at(mat, i + ii, j + jj) = floor(slice[ii][jj]);
 #ifdef debugloss
                     if (counter <= 2) dct_recover << (float) slice[ii][jj] << '\t';
 #endif

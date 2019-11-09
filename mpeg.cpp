@@ -86,7 +86,7 @@ public:
         cout << "signature" << endl;
         cout << sign << endl;
         string out = outfile;
-        insertMark(outfile, ("sign_" + out).c_str(), sign);
+//        insertMark(outfile, ("sign_" + out).c_str(), sign);
         cout << "success" << endl;
     }
 
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 
 //    mpeg.getKeyPair();
     mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
-//    mpeg.decryptFrame("sign_test_golf_cry111.mp4", "golf_hf111.mp4","fmIZ1FtcBXD1/zsKeq63FVUToHc=","","9uVdP8gMlgPAGP1Qilt4WRcF+eI=");
+//    mpeg.decryptFrame("people_test_en.mp4", "hf111.mp4","Km9g8ySf3c+eCPD9aIRGlfb4zSo=","Vu9IswGgvZolioK4XN/JdSB+HtQ=","QcAHkR4b6W5kaQSxovFsK+MW0Io=");
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
 //    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
 //    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
