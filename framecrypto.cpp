@@ -232,8 +232,8 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                         printf("multiple loss %d: %.5f -> %.5f\n", ++count2, slice[ii][jj], at(mat, i + ii, j + jj));
                     }
 #endif
-                    discrete_slice[ii][jj] = slice[ii][jj] > 0 ? (uint8_t) floor(slice[ii][jj]): 0;
-                    loss[ii][jj] = slice[ii][jj] > 0 ? slice[ii][jj] - (float) discrete_slice[ii][jj]: slice[ii][jj];
+                    discrete_slice[ii][jj] = slice[ii][jj] >= 0 ? (uint8_t) floor(slice[ii][jj]): (uint8_t)(-ceil(slice[ii][jj]));
+                    loss[ii][jj] = slice[ii][jj] >= 0 ? slice[ii][jj] - (float) discrete_slice[ii][jj]: slice[ii][jj];
                 }
             }
 
@@ -263,7 +263,10 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
 
                     if (ii >= 8 || layer - ii >= 8) continue;
                     strong_plaintext[strong_plaintext_pointer] = discrete_slice[ii][layer - ii] & ((1 << MASK_LAYER) - 1);
-                    at(mat, i + ii, j + layer - ii) -= strong_plaintext[strong_plaintext_pointer++];
+                    if (slice[ii][layer - ii] >= 0)
+                        at(mat, i + ii, j + layer - ii) -= strong_plaintext[strong_plaintext_pointer++];
+                    else
+                        at(mat, i + ii, j + layer - ii) += strong_plaintext[strong_plaintext_pointer++]
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
@@ -271,7 +274,10 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
 
                     if (ii >= 8 || layer - ii >= 8) continue;
                     weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii] & ((1 << MASK_LAYER) - 1);
-                    at(mat, i + ii, j + layer - ii) -= weak_plaintext[strong_plaintext_pointer++];;
+                    if (slice[ii][layer - ii] >= 0)
+                        at(mat, i + ii, j + layer - ii) -= weak_plaintext[strong_plaintext_pointer++];
+                    else
+                        at(mat, i + ii, j + layer - ii) += weak_plaintext[strong_plaintext_pointer++];
                 }
             }
         }
@@ -293,13 +299,19 @@ void idct_frame(float *mat, int __height, int __width) {
             for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    at(mat, i + ii, j + layer - ii) += strong_ciphertext[strong_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
+                    if (at(mat, i + ii, j + layer - ii) >= 0)
+                        at(mat, i + ii, j + layer - ii) += strong_ciphertext[strong_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
+                    else
+                        at(mat, i + ii, j + layer - ii) -= strong_ciphertext[strong_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
                 }
             }
             for (int layer = WEAK_LAYER_START; layer <= WEAK_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
                     if (ii >= 8 || layer - ii >= 8) continue;
-                    at(mat, i + ii, j + layer - ii) += weak_ciphertext[weak_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
+                    if (at(mat, i + ii, j + layer - ii) >= 0)
+                        at(mat, i + ii, j + layer - ii) += weak_ciphertext[weak_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
+                    else
+                        at(mat, i + ii, j + layer - ii) -= weak_ciphertext[weak_ciphertext_counter++] & ((1 << MASK_LAYER) - 1);
                 }
             }
 
