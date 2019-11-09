@@ -1,3 +1,4 @@
+
 #include "framecrypto.h"
 
 #define debug2
@@ -252,7 +253,7 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
             if (counter <= 2) {
                 for (int i = 0; i < 8; i++) {
                     for (int j = 0; j < 8; j++) {
-                        dct_encode << slice[i][j] << '\t';
+                        dct_encode << slice[i][j] << ' ';
                     }
                     dct_encode << endl;
                 }
@@ -307,7 +308,7 @@ void idct_frame(float *mat, int __height, int __width) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj);
 #ifdef debugloss
-                    if (counter <= 2) mat_aft << (float) at(mat, i + ii, j + jj) << '\t';
+                    if (counter <= 2) mat_aft << (float) at(mat, i + ii, j + jj) << ' ';
 #endif
                 }
 #ifdef debugloss
