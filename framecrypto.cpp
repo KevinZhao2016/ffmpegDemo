@@ -32,7 +32,7 @@ static int counter = 0;
 #ifdef debugloss
 fstream plain_bef, plain_aft, cipher_bef, cipher_aft;
 fstream mat_bef, mat_aft;
-fstream dct_recover;
+fstream dct_recover, dct_encode;
 void initFstream() {
 if (counter > 1) return;
 plain_bef.open("plaintext_bef.txt", ios::app | ios::out);
@@ -42,6 +42,7 @@ cipher_aft.open("ciphertext_aft.txt", ios::app | ios::out);
 mat_bef.open("mat_bef.txt", ios::app | ios::out);
 mat_aft.open("mat_aft.txt", ios::app | ios::out);
 dct_recover.open("dct_recover.txt", ios::app | ios::out);
+dct_encode.open("dct_open.txt", ios::app | ios::out);
 }
 
 void closeFstream() {
@@ -53,6 +54,7 @@ void closeFstream() {
     mat_aft.close();
     mat_bef.close();
     dct_recover.close();
+    dct_encode.close();
 }
 #endif
 
@@ -111,14 +113,14 @@ void stream_encrypt(EVP_CIPHER_CTX *ctx, pixel *ciphertext, int *cipher_len, pix
 #ifdef debugloss
         cerr << "(cipher_len, plain_len) is : " << *cipher_len << " " << *plain_len << "After ENcryption." << endl;
         for (int i = 0; i < *cipher_len && counter < 2; i++) {
-            cipher_bef << (int) ciphertext[i] << endl;
+            cipher_bef << (int) (ciphertext[i] & ((1 << MASK_LAYER) - 1)) << endl;
         }
 #endif
         //strong_ciphertext_pointer = *cipher_len;
     } else if (mode == 1) {
 #ifdef debugloss
         for (int i = 0; i < *cipher_len && counter < 2; i++) {
-            cipher_aft << (int) ciphertext[i] << endl;
+            cipher_aft << (int) (ciphertext[i] & ((1 << MASK_LAYER) - 1)) << endl;
         }
 #endif
         if (EVP_DecryptUpdate(ctx, plaintext, plain_len, ciphertext, *cipher_len) != 1) {
@@ -187,7 +189,7 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj);
 #ifdef debugloss
-                    if (counter < 2) mat_bef << (float) at(mat, i + ii, j + jj) << ' ';
+                    if (counter < 2) mat_bef << (float) at(mat, i + ii, j + jj) << '\t';
 #endif
                 }
 #ifdef debugloss
@@ -246,6 +248,16 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
              */
 
             //printf("pointer is : %d %d \n", strong_plaintext_pointer, weak_plaintext_pointer);
+#ifdef debugloss
+            if (counter <= 2) {
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        dct_encode << slice[i][j] << '\t';
+                    }
+                    dct_encode << endl;
+                }
+            }
+#endif
             for (int layer = STRONG_LAYER_START; layer <= STRONG_LAYER_END; layer++) {
                 for (int ii = layer; ii >= 0; ii--) {
 
@@ -295,7 +307,7 @@ void idct_frame(float *mat, int __height, int __width) {
                 for (int jj = 0; jj < 8; jj++) { // copy a 8 * 8 block to the mat.
                     slice[ii][jj] = at(mat, i + ii, j + jj);
 #ifdef debugloss
-                    if (counter <= 2) mat_aft << (float) at(mat, i + ii, j + jj) << ' ';
+                    if (counter <= 2) mat_aft << (float) at(mat, i + ii, j + jj) << '\t';
 #endif
                 }
 #ifdef debugloss
@@ -309,7 +321,7 @@ void idct_frame(float *mat, int __height, int __width) {
                 for (int jj = 0; jj < 8; jj++) {
                     at(mat, i + ii, j + jj) = floor(slice[ii][jj]);
 #ifdef debugloss
-                    if (counter <= 2) dct_recover << (float) slice[ii][jj] << ' ';
+                    if (counter <= 2) dct_recover << (float) slice[ii][jj] << '\t';
 #endif
                 }
 #ifdef debugloss
