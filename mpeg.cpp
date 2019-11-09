@@ -125,35 +125,35 @@ public:
 int main(int argc, char *argv[]) {
     Mpeg mpeg = Mpeg();
     av_log_set_level(AV_LOG_QUIET);
-    switch (*argv[1]) {
-        case '1':
-            mpeg.encryptFrame(argv[2], argv[3]);
-            break;
-        case '2':
-            mpeg.decryptFrame(argv[2], argv[3], argv[4], argv[5], argv[6]);
-            break;
-        case '3':
-            cout << mpeg.getSign(argv[2], argv[3]) << endl;
-            break;
-        case '4':
-            mpeg.insertMark(argv[2], argv[3], argv[4]);
-            break;
-        case '5':
-            cout << mpeg.getWaterMark(argv[2]) << endl;
-            break;
-        case '6':
-            cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
-            break;
-        case '7':
-            mpeg.getKeyPair();
-            break;
-        default:
-            cout << argv[1] << endl;
-            break;
-    }
+//    switch (*argv[1]) {
+//        case '1':
+//            mpeg.encryptFrame(argv[2], argv[3]);
+//            break;
+//        case '2':
+//            mpeg.decryptFrame(argv[2], argv[3], argv[4], argv[5], argv[6]);
+//            break;
+//        case '3':
+//            cout << mpeg.getSign(argv[2], argv[3]) << endl;
+//            break;
+//        case '4':
+//            mpeg.insertMark(argv[2], argv[3], argv[4]);
+//            break;
+//        case '5':
+//            cout << mpeg.getWaterMark(argv[2]) << endl;
+//            break;
+//        case '6':
+//            cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
+//            break;
+//        case '7':
+//            mpeg.getKeyPair();
+//            break;
+//        default:
+//            cout << argv[1] << endl;
+//            break;
+//    }
 
 //    mpeg.getKeyPair();
-//    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
+    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
 //    mpeg.decryptFrame("sign_test_golf_cry111.mp4", "golf_hf111.mp4","fmIZ1FtcBXD1/zsKeq63FVUToHc=","","9uVdP8gMlgPAGP1Qilt4WRcF+eI=");
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
 //    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
