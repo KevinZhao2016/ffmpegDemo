@@ -20,11 +20,12 @@ extern "C" {
 #include <iostream>
 #include <cstdio>
 #include <fstream>
+#include <iomanip>
 
 #define at(m, x, y) m[(x) * (linelen) + (y)]
 
 
-#define STRONG_LAYER_START 5
+#define STRONG_LAYER_START 0
 #define STRONG_LAYER_END 8
 #define WEAK_LAYER_START 10
 #define WEAK_LAYER_END 10
