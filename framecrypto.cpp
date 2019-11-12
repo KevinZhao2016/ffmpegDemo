@@ -276,9 +276,9 @@ dct_frame(float *mat, int __height, int __width, EVP_CIPHER_CTX *strong_en = nul
                     if (ii >= 8 || layer - ii >= 8) continue;
                     weak_plaintext[weak_plaintext_pointer++] = discrete_slice[ii][layer - ii] & ((1 << MASK_LAYER) - 1);
                     if (slice[ii][layer - ii] >= 0)
-                        at(mat, i + ii, j + layer - ii) -= weak_plaintext[strong_plaintext_pointer++];
+                        at(mat, i + ii, j + layer - ii) -= weak_plaintext[weak_plaintext_pointer++];
                     else
-                        at(mat, i + ii, j + layer - ii) += weak_plaintext[strong_plaintext_pointer++];
+                        at(mat, i + ii, j + layer - ii) += weak_plaintext[weak_plaintext_pointer++];
                 }
             }
         }

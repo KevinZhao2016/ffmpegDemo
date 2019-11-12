@@ -146,18 +146,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
-
-                    if (frame->key_frame) {
-                        clock_t start, ends;
-                        start = clock();
-                        //解密
-                        Crypto crypto = Crypto();
-                        crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
-                                       (unsigned char *) zuciv);
-                        decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
-                        ends = clock();
-//                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
-                    }
                 }
 
                 flag = false;
