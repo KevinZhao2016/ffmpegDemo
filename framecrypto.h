@@ -36,17 +36,26 @@ extern "C" {
 
 using namespace std;
 
-const int MAX_PADDING_LEN = 16;
+namespace frameCrypto {
+    const int MAX_PADDING_LEN = 16;
 
-typedef uint8_t pixel;
-typedef int crypto_mode;
-void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width);
-void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en,EVP_CIPHER_CTX *weak_en, int encrypt_height, int encrypt_width);
+    typedef uint8_t pixel;
+    typedef int crypto_mode;
 
-void dct_frame(AVFrame *frame, int height, int width);
-void stream_encrypt();
-void idct_frame(AVFrame *frame, int height, int width);
+    void encrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int encrypt_height,
+                       int encrypt_width);
 
-void mat_mul(float *A, float *B, float *res, int a, int b, int c);
+    void decrypt_frame(AVFrame *frame, EVP_CIPHER_CTX *strong_en, EVP_CIPHER_CTX *weak_en, int encrypt_height,
+                       int encrypt_width);
+
+    void dct_frame(AVFrame *frame, int height, int width);
+
+    void stream_encrypt();
+
+    void idct_frame(AVFrame *frame, int height, int width);
+
+    void mat_mul(float *A, float *B, float *res, int a, int b, int c);
+
+}
 
 #endif //FRAME_CRYPTO.h
