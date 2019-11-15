@@ -95,13 +95,23 @@ namespace frameSign {
                         slice[ii][jj] = at(inp, i + ii, j + jj);
                     }
                 }
-                static int counter = 0;
-                if (counter < 100) {
-                    cerr << counter << "mat_mul" << endl;
-                    counter++;
-                }
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
+
+#ifdef debug_msg
+                static int check_counter = 0;
+                static int check_grab_counter = 0;
+                if (check_counter == 0 || (isgrab && check_grab_counter == 0)) {
+                    for (int ii = 0; ii < 8; ii++) {
+                        for (int jj = 0; jj < 8; jj++) {
+                            cout << slice[ii][jj] << ' ';
+                        }
+                        cout << endl;
+                    }
+                    check_counter++;
+                    if (isgrab) check_grab_counter++;
+                }
+#endif
 
                 if (isgrab) {
                     float a = 0, b = 0;
@@ -112,20 +122,26 @@ namespace frameSign {
                     for (int ii = 3; ii >= 0; ii--) {
                         b += slice[3 - ii][ii];
                     }
+#ifdef debug_msg
+                    cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
+#endif
                     if (a - b > 12 || b - a > 12) {
                         // read EOF.
                         isgrab = false;
-                    }
-                    if (a - b > 1) {
-                        grab_msg[grab_counter++] = 1;
-                    } else if (b - a > 1) {
-                        grab_msg[grab_counter++] = 0;
                     } else {
-                        cerr << "cannot understand message.";
-                    }
+                        if (a - b > 1) {
+                            grab_msg[grab_counter++] = 1;
+                        } else if (b - a > 1) {
+                            grab_msg[grab_counter++] = 0;
+                        } else {
+                            grab_counter++;
+                            cerr << "cannot understand message." << endl;
+                        }
+
 #ifdef debug_msg
-                    cerr << grab_counter - 1 << ": " << (int)grab_msg[grab_counter-1] << endl;
+                        cerr << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
 #endif
+                    }
                 }
 
                 for (int ii = 0; ii < 8; ii++) {
@@ -138,15 +154,11 @@ namespace frameSign {
     }
 
     void idct_frame(float *inp, int height, int width, bool isjoin = false, pixel *join_msg = nullptr, int msglen = 0) {
-#ifdef debug_msg
-        for (int i = 0; i < 20; i++) {
-            cout << (int)join_msg[i] << ' ';
-        }
-#endif
         float res[8][8];
         float slice[8][8];
         int __height = (height >> 3) << 3, __width = (width >> 3) << 3;
         int linelen = width;
+
         for (int i = 0; i < __height; i += 8) {
             for (int j = 0; j < __width; j += 8) {
 
@@ -155,62 +167,83 @@ namespace frameSign {
                         slice[ii][jj] = at(inp, i + ii, j + jj);
                     }
                 }
+#ifdef debug_msg
+                static int check_counter = 0;
+                if (check_counter == 0) {
+                    for (int ii = 0; ii < 8; ii++) {
+                        for (int jj = 0; jj < 8; jj++) {
+                            cout << slice[ii][jj] << ' ';
+                        }
+                        cout << endl;
+                    }
+                    check_counter++;
+                }
+#endif
 
                 if (isjoin) {
+
                     int layer = 7;
                     float a = 0,
                     b = 0;
                     for (int ii = layer; ii >= 4; ii--) {
                         a += slice[layer - ii][ii];
-                        b += slice[layer - 4 - ii][ii + 4];
+                        b += slice[layer + 4 - ii][ii - 4];
                     }
+
                     if (join_counter == msglen) {
                         // insert EOF
+                        static int EOF_counter = 0;
+                        cout << "insert EOF " << EOF_counter << endl;
                         if (a > b) {
+
                             int des = ceil((16 - (a - b)) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] += des;
-                                slice[layer - 4 - ii][ii + 4] -= des;
+                                slice[layer + 4 - ii][ii - 4] -= des;
                             }
                         } else {
                             int des = ceil((16 - (b - a)) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] -= des;
-                                slice[layer - 4 - ii][ii + 4] += des;
+                                slice[layer + 4 - ii][ii - 4] += des;
                             }
                         }
+#ifdef debug_msg
+                        for (int ii = layer; ii >= 0; ii--) {
+                            cout << slice[layer - ii][ii] << ' ';
+                        }
+                        cout << endl;
+
+                        float a1 = 0, b1 = 0;
+                        for (int ii = layer; ii >= 4; ii--) {
+                            a1 += slice[layer - ii][ii];
+                            b1 += slice[layer + 4 - ii][ii - 4];
+                        }
+                        cout << "EOF sum is :" << a1 << " " << b1 << endl;
+#endif
                         isjoin = false;
+
                     } else {
-                        if (1) {
+                        if (bit_message(join_msg, join_counter)) {
                             int des = ceil((8 - (a - b)) / 8);
+                            cout << "des is " << des << endl;
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] += des;
-                                slice[layer - 4 - ii][ii + 4] -= des;
+                                slice[layer + 4 - ii][ii - 4] -= des;
                             }
                         } else {
                             int des = ceil((8 - (b - a)) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] -= des;
-                                slice[layer - 4 - ii][ii + 4] += des;
+                                slice[layer + 4 - ii][ii - 4] += des;
                             }
                         }
-#ifdef debug_msg
-                        cerr << "debug" << endl;
-                        if (join_msg == nullptr) cerr << "panic" << endl;
-                        cerr << (int)join_msg[0] << endl;
-                        //cerr << join_counter <<": " << (int)bit_message(join_msg, join_counter) << endl;
-#endif
                     }
                     join_counter++;
                 }
                 static int counter = 0;
-                if (counter < 100) {
-                    cerr << counter << "test" << endl;
-                    counter++;
-                }
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
-                cerr << ",,," << endl;
                 for (int ii = 0; ii < 8; ii++) {
                     for (int jj = 0; jj < 8; jj++) {
                         at(inp, i + ii, j + jj) = slice[ii][jj];
@@ -226,6 +259,7 @@ namespace frameSign {
             cout << (int)join_msg[i] << ' ';
         }
 #endif
+        initDctMat();
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
         int linelen = width;
@@ -234,14 +268,15 @@ namespace frameSign {
                 at(precise_mat, i, j) = (float) at(mat, i, j);
             }
         }
-        cerr << "iiin" << endl;
+        cout << "iiin" << endl;
         dct_frame((float *) precise_mat, height, width);
-        cerr << "mmidle" << endl;
+        cout << "mmidle" << endl;
         idct_frame((float *) precise_mat, height, width, true, join_msg, msglen); // join message write in idct_frame, because grabbing message do not affect message.
         cout << "ooout" << endl;
     }
 
     pixel* grab_message(AVFrame *frame, pixel *out, int height, int width) {
+        initDctMat();
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
         int linelen = width;
