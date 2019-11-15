@@ -2,6 +2,8 @@
 // Created by Occulticplus on 2019/11/12.
 //
 #define debug_msg
+
+#include "frameSign.h"
 namespace frameSign {
     float msk[8][8] = {{16, 11, 10, 16, 24,  40,  51,  61},
                        {12, 12, 14, 19, 26,  58,  60,  55},
@@ -13,7 +15,7 @@ namespace frameSign {
                        {72, 92, 95, 98, 112, 100, 103, 99}};
     float pi = acos(-1.0);
     float A[8][8], At[8][8];
-    byte grab_msg[1000], join_msg[1000];
+    pixel grab_msg[1000], join_msg[1000];
     int grab_counter, join_counter;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
@@ -71,13 +73,13 @@ namespace frameSign {
         return inl[a] & (1 << b);
     }
 
-    void solve(float *inp, pixel msg, bool isend = false, int linelen = 8, int bits = 2) {
-        int layer = 14 - bits;
-        for (int i = layer; i >= 0; i--) {
-            if (layer - i >= 8 || i >= 8) continue;
-            if (msg ==)
-        }
-    }
+//    void solve(float *inp, pixel msg, bool isend = false, int linelen = 8, int bits = 2) {
+//        int layer = 14 - bits;
+//        for (int i = layer; i >= 0; i--) {
+//            if (layer - i >= 8 || i >= 8) continue;
+//            if (msg ==)
+//        }
+//    }
 
     void dct_frame(float *inp, int height, int width, bool isgrab = false) {
 
@@ -93,7 +95,11 @@ namespace frameSign {
                         slice[ii][jj] = at(inp, i + ii, j + jj);
                     }
                 }
-
+                static int counter = 0;
+                if (counter < 100) {
+                    cerr << counter << "mat_mul" << endl;
+                    counter++;
+                }
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
 
@@ -132,6 +138,11 @@ namespace frameSign {
     }
 
     void idct_frame(float *inp, int height, int width, bool isjoin = false, pixel *join_msg = nullptr, int msglen = 0) {
+#ifdef debug_msg
+        for (int i = 0; i < 20; i++) {
+            cout << (int)join_msg[i] << ' ';
+        }
+#endif
         float res[8][8];
         float slice[8][8];
         int __height = (height >> 3) << 3, __width = (width >> 3) << 3;
@@ -147,7 +158,7 @@ namespace frameSign {
 
                 if (isjoin) {
                     int layer = 7;
-                    float a = 0;
+                    float a = 0,
                     b = 0;
                     for (int ii = layer; ii >= 4; ii--) {
                         a += slice[layer - ii][ii];
@@ -170,7 +181,7 @@ namespace frameSign {
                         }
                         isjoin = false;
                     } else {
-                        if (bit_message(join_msg, join_counter) == 1) {
+                        if (1) {
                             int des = ceil((8 - (a - b)) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] += des;
@@ -183,16 +194,23 @@ namespace frameSign {
                                 slice[layer - 4 - ii][ii + 4] += des;
                             }
                         }
-#ifdef debug_message
-                        cerr << join_conter <<": " << (int)bit_message(join_msg, join_counter) << endl;
+#ifdef debug_msg
+                        cerr << "debug" << endl;
+                        if (join_msg == nullptr) cerr << "panic" << endl;
+                        cerr << (int)join_msg[0] << endl;
+                        //cerr << join_counter <<": " << (int)bit_message(join_msg, join_counter) << endl;
 #endif
                     }
                     join_counter++;
                 }
-
+                static int counter = 0;
+                if (counter < 100) {
+                    cerr << counter << "test" << endl;
+                    counter++;
+                }
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
-
+                cerr << ",,," << endl;
                 for (int ii = 0; ii < 8; ii++) {
                     for (int jj = 0; jj < 8; jj++) {
                         at(inp, i + ii, j + jj) = slice[ii][jj];
@@ -203,28 +221,38 @@ namespace frameSign {
     }
 
     void join_message(AVFrame *frame, pixel *sign, int height, int width, pixel *join_msg, int msglen) {
+#ifdef debug_msg
+        for (int i = 0; i < 20; i++) {
+            cout << (int)join_msg[i] << ' ';
+        }
+#endif
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
+        int linelen = width;
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 at(precise_mat, i, j) = (float) at(mat, i, j);
             }
         }
+        cerr << "iiin" << endl;
         dct_frame((float *) precise_mat, height, width);
-        idct_frame((float *) precise_mat, height, width, true, join_msg,
-                   msglen); // join message write in idct_frame, because grabbing message do not affect message.
+        cerr << "mmidle" << endl;
+        idct_frame((float *) precise_mat, height, width, true, join_msg, msglen); // join message write in idct_frame, because grabbing message do not affect message.
+        cout << "ooout" << endl;
     }
 
     pixel* grab_message(AVFrame *frame, pixel *out, int height, int width) {
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
+        int linelen = width;
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 at(precise_mat, i, j) = (float) at(mat, i, j);
             }
         }
-        dct_frame((float *) precise_mat, height, width, 8, true);
-        for (int i = 0, p = 0; i < grab_counter; i++) {
+        dct_frame((float *) precise_mat, height, width, true);
+        int p = 0;
+        for (int i = 0; i < grab_counter; i++) {
             if (i % 8 == 0 && i > 0) {
                 p++;
             }

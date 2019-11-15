@@ -103,7 +103,7 @@ public:
 
     void insertMark(const char *infile, const char *outfile, const string sign) {
         sig.size = base64.Decode(sign.c_str(), sig.message);
-        sig.message[sig.size++] = 0xaa; //结束符
+//        sig.message[sig.size++] = 0xaa; //结束符
         base64.Encode(sig.message, sig.size);
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
@@ -153,11 +153,13 @@ int main(int argc, char *argv[]) {
 //    }
 
 //    mpeg.getKeyPair();
-    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
+//    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
 //    mpeg.decryptFrame("people_test_en.mp4", "hf111.mp4","Km9g8ySf3c+eCPD9aIRGlfb4zSo=","Vu9IswGgvZolioK4XN/JdSB+HtQ=","QcAHkR4b6W5kaQSxovFsK+MW0Io=");
 //    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
-//    mpeg.insertMark("test.mp4","test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
-//    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
+    cout << "in" << endl;
+    mpeg.insertMark("people_test_en.mp4","sign_people_test_en.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
+    cout << "out" << endl;
+    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
 //    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9XBXw11C2US0dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
     return 0;
 }

@@ -142,7 +142,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
                                    (unsigned char *) zuciv);
                     //加密关键帧
-                    encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+                    frameCrypto::encrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
@@ -159,7 +159,7 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     Crypto crypto = Crypto();
                     crypto.initZUC((unsigned char *) zucStrongKey, (unsigned char *) zucWeakKey,
                                    (unsigned char *) zuciv);
-                    decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
+                    frameCrypto::decrypt_frame(frame, crypto.strong_en, crypto.weak_en, height, frame->linesize[0]);
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
                 }
@@ -178,9 +178,12 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             count++;
             clock_t start, ends;
             start = clock();
-            insertMark(frame);
+//            insertMark(frame);
+            cout << "iin" << endl;
+            frameSign::join_message(frame, sig.message, height, width, sig.message, sig.size);
+            cout << "oout " << endl;
             ends = clock();
-//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);
@@ -278,10 +281,12 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
 //            cout << "found!" << endl;
             clock_t start, ends;
             start = clock();
-            getMark(frame);
+//            getMark(frame);
+            frameSign::grab_message(frame, sig.message, height, width);
+            sig.size = frameSign::grab_message_length();
             count++;
             ends = clock();
-//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
             return;
         }
     }

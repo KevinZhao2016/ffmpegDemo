@@ -4,7 +4,7 @@ project(ffmpegDemo)
 include_directories(/usr/local/Cellar/ffmpeg/4.1.4_2/include/)
 link_directories(/usr/local/Cellar/ffmpeg/4.1.4_2/lib/)
 
-set(SOURCE_FILES crypto.cpp mpeg.cpp framecrypto.cpp )
+set(SOURCE_FILES crypto.cpp  frameSign.cpp framecrypto.cpp mpeg.cpp)
 
 add_executable(ffmpegDemo ${SOURCE_FILES})
 

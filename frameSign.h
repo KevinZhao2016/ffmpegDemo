@@ -29,7 +29,9 @@ extern "C" {
 #define at(m, x, y) m[(x) * (linelen) + (y)]
 
 using namespace std;
+
 namespace frameSign {
+    const int INF = 0x3f3f3f3f;
     typedef uint8_t pixel;
     void join_message(AVFrame *frame, pixel *sign, int height, int width, pixel *join_msg, int msglen);
     pixel* grab_message(AVFrame *frame, pixel *out, int height, int width);

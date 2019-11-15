@@ -12,11 +12,12 @@ extern "C" {
 
 #include <iostream>
 #include <stdlib.h>
+#include "frameSign.h"
 
 #define KEYLENGTH 20
 
 typedef struct signature {
-    unsigned char message[730] = {0};//签名
+    unsigned char message[80] = {0};//签名
     int size = 0;
 } Signature;
 Signature sig = Signature();
