@@ -125,13 +125,13 @@ namespace frameSign {
 #ifdef debug_msg
                     cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
 #endif
-                    if (a - b > 12 || b - a > 12) {
+                    if (a - b < 8 && b - a < 8) {
                         // read EOF.
                         isgrab = false;
                     } else {
-                        if (a - b > 1) {
+                        if (a - b > 10) {
                             grab_msg[grab_counter++] = 1;
-                        } else if (b - a > 1) {
+                        } else if (b - a > 10) {
                             grab_msg[grab_counter++] = 0;
                         } else {
                             grab_counter++;
@@ -195,17 +195,16 @@ namespace frameSign {
                         static int EOF_counter = 0;
                         cout << "insert EOF " << EOF_counter << endl;
                         if (a > b) {
-
-                            int des = ceil((16 - (a - b)) / 8);
-                            for (int ii = layer; ii >= 4; ii--) {
-                                slice[layer - ii][ii] += des;
-                                slice[layer + 4 - ii][ii - 4] -= des;
-                            }
-                        } else {
-                            int des = ceil((16 - (b - a)) / 8);
+                            int des = floor((a - b) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] -= des;
                                 slice[layer + 4 - ii][ii - 4] += des;
+                            }
+                        } else {
+                            int des = floor((b - a)/ 8);
+                            for (int ii = layer; ii >= 4; ii--) {
+                                slice[layer - ii][ii] += des;
+                                slice[layer + 4 - ii][ii - 4] -= des;
                             }
                         }
 #ifdef debug_msg
@@ -224,18 +223,22 @@ namespace frameSign {
                         isjoin = false;
 
                     } else {
-                        if (bit_message(join_msg, join_counter)) {
-                            int des = ceil((8 - (a - b)) / 8);
-                            cout << "des is " << des << endl;
-                            for (int ii = layer; ii >= 4; ii--) {
-                                slice[layer - ii][ii] += des;
-                                slice[layer + 4 - ii][ii - 4] -= des;
+                        if (bit_message(join_msg, join_counter) == 1) {
+                            if (a - b < 16) {
+                                int des = ceil((16 - (a - b)) / 8);
+                                cout << "des is " << des << endl;
+                                for (int ii = layer; ii >= 4; ii--) {
+                                    slice[layer - ii][ii] += des;
+                                    slice[layer + 4 - ii][ii - 4] -= des;
+                                }
                             }
                         } else {
-                            int des = ceil((8 - (b - a)) / 8);
-                            for (int ii = layer; ii >= 4; ii--) {
-                                slice[layer - ii][ii] -= des;
-                                slice[layer + 4 - ii][ii - 4] += des;
+                            if (b - a < 16) {
+                                int des = ceil((16 - (b - a)) / 8);
+                                for (int ii = layer; ii >= 4; ii--) {
+                                    slice[layer - ii][ii] -= des;
+                                    slice[layer + 4 - ii][ii - 4] += des;
+                                }
                             }
                         }
                     }
