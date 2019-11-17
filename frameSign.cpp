@@ -1,7 +1,7 @@
 //
 // Created by Occulticplus on 2019/11/12.
 //
-#define debug_msg
+#define debug_msg1
 
 #include "frameSign.h"
 namespace frameSign {
@@ -179,7 +179,6 @@ namespace frameSign {
                     check_counter++;
                 }
 #endif
-
                 if (isjoin) {
 
                     int layer = 7;
@@ -221,7 +220,6 @@ namespace frameSign {
                         cout << "EOF sum is :" << a1 << " " << b1 << endl;
 #endif
                         isjoin = false;
-
                     } else {
                         if (bit_message(join_msg, join_counter) == 1) {
                             if (a - b < 16) {
