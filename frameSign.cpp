@@ -1,11 +1,16 @@
 //
 // Created by Occulticplus on 2019/11/12.
 //
-#define debug_msg1
+#define debug_msg
+
+#define debug_bound
 
 #include "frameSign.h"
 
 namespace frameSign {
+    int debug_list[] = {1, 2, 3, 4, 5, 6, 7};
+    int debug_list_len = 7;
+    int debug_list_counter = 0;
     float msk[8][8] = {{16, 11, 10, 16, 24,  40,  51,  61},
                        {12, 12, 14, 19, 26,  58,  60,  55},
                        {14, 13, 16, 24, 40,  57,  69,  56},
@@ -83,7 +88,9 @@ namespace frameSign {
 //    }
 
     void dct_frame(float *inp, int height, int width, bool isgrab = false) {
-
+#ifdef debug_msg
+        debug_list_counter = 0;
+#endif
         float res[8][8];
         float slice[8][8];
         int __height = (height >> 3) << 3, __width = (width >> 3) << 3;
@@ -96,22 +103,39 @@ namespace frameSign {
                         slice[ii][jj] = at(inp, i + ii, j + jj);
                     }
                 }
+#ifdef debug_msg
+                static int check_grab_counter0 = 0;
+                if (debug_list_counter < debug_list_len &&
+                    (!isgrab && check_grab_counter0 == debug_list[debug_list_counter])) {
+                    cout << "debug block INIT " << check_grab_counter0 << endl;
+                    for (int ii = 0; ii < 8; ii++) {
+                        for (int jj = 0; jj < 8; jj++) {
+                            cout << slice[ii][jj] << " , ";
+                        }
+                        cout << endl;
+                    }
+                    if(!isgrab) debug_list_counter++;
+                }
+                if (!isgrab) check_grab_counter0++;
+#endif
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
 
 #ifdef debug_msg
                 static int check_counter = 0;
                 static int check_grab_counter = 0;
-                if (check_counter == 0 || (isgrab && check_grab_counter == 0)) {
+                if (debug_list_counter < debug_list_len &&
+                    (isgrab && check_grab_counter == debug_list[debug_list_counter])) {
+                    cout << "debug block " << check_grab_counter << endl;
                     for (int ii = 0; ii < 8; ii++) {
                         for (int jj = 0; jj < 8; jj++) {
                             cout << slice[ii][jj] << ' ';
                         }
                         cout << endl;
                     }
-                    check_counter++;
-                    if (isgrab) check_grab_counter++;
+                    debug_list_counter++;
                 }
+                if (isgrab) check_grab_counter++;
 #endif
 
                 if (isgrab) {
@@ -142,7 +166,7 @@ namespace frameSign {
                         }
 
 #ifdef debug_msg
-                        cerr << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
+                        cout << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
 #endif
                     }
                 }
@@ -157,6 +181,9 @@ namespace frameSign {
     }
 
     void idct_frame(float *inp, int height, int width, bool isjoin = false, pixel *join_msg = nullptr, int msglen = 0) {
+#ifdef debug_msg
+        debug_list_counter = 0;
+#endif
         float res[8][8];
         float slice[8][8];
         int __height = (height >> 3) << 3, __width = (width >> 3) << 3;
@@ -172,19 +199,21 @@ namespace frameSign {
                 }
 #ifdef debug_msg
                 static int check_counter = 0;
-                if (check_counter == 0) {
+                if (debug_list_counter < debug_list_len && check_counter == debug_list[debug_list_counter]) {
+                    cout << "debug block " << check_counter << endl;
                     for (int ii = 0; ii < 8; ii++) {
                         for (int jj = 0; jj < 8; jj++) {
                             cout << slice[ii][jj] << ' ';
                         }
                         cout << endl;
                     }
-                    check_counter++;
+                    debug_list_counter++;
                 }
+                check_counter++;
 #endif
                 if (isjoin) {
                     const int layer = 7;
-                    float a = 0,b = 0;
+                    float a = 0, b = 0;
                     for (int ii = layer; ii >= 4; ii--) {
                         a += slice[layer - ii][ii];
                         b += slice[layer + 4 - ii][ii - 4];
@@ -225,9 +254,11 @@ namespace frameSign {
                         grab_msg[join_counter] = bit_message(join_msg, join_counter);
                         cout << "insert message bit " << join_counter << ':'
                              << (int) bit_message(join_msg, join_counter) << endl;
+                        int des = 0;
                         if (bit_message(join_msg, join_counter) == 1) {
+                            cout << a << ' ' << b << endl;
                             if (a - b < 16) {
-                                int des = ceil((16 - (a - b)) / 8);
+                                des = ceil((16 - (a - b)) / 8);
                                 cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] += des;
@@ -235,9 +266,9 @@ namespace frameSign {
                                 }
                             }
                         } else {
-                            cout << b << ' ' << a << endl;
+                            cout << a << ' ' << b << endl;
                             if (b - a < 16) {
-                                int des = ceil((16 - (b - a)) / 8);
+                                des = ceil((16 - (b - a)) / 8);
                                 cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] -= des;
@@ -245,11 +276,14 @@ namespace frameSign {
                                 }
                             }
                         }
+
+#ifdef debug_bound
+#endif
                     }
                     join_counter++;
                 }
-                mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
-                mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
+                mat_mul((float *) At, (float *) slice, (float *) res, 8, 8, 8);
+                mat_mul((float *) res, (float *) A, (float *) slice, 8, 8, 8);
                 for (int ii = 0; ii < 8; ii++) {
                     for (int jj = 0; jj < 8; jj++) {
                         at(inp, i + ii, j + jj) = slice[ii][jj];
@@ -261,6 +295,7 @@ namespace frameSign {
 
     void join_message(AVFrame *frame, pixel *sign, int height, int width, pixel *join_msg, int msglen) {
 #ifdef debug_msg
+        debug_list_counter = 0;
         for (int i = 0; i < 20; i++) {
             cout << (int) join_msg[i] << ' ';
         }
@@ -298,6 +333,9 @@ namespace frameSign {
     }
 
     pixel *grab_message(AVFrame *frame, pixel *out, int height, int width) {
+#ifdef debug_msg
+        debug_list_counter = 0;
+#endif
         initDctMat();
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
@@ -314,7 +352,11 @@ namespace frameSign {
                 p++;
             }
             out[p] += ((grab_msg[i] & 1) << (i % 8));
+#ifdef debug_msg
+            cout << (int) grab_msg[i] << ' ';
+#endif
         }
+        cout << endl;
         join_counter = p + 1;
         return out;
     }
