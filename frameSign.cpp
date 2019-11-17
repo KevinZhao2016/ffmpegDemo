@@ -286,7 +286,9 @@ namespace frameSign {
                 mat_mul((float *) res, (float *) A, (float *) slice, 8, 8, 8);
                 for (int ii = 0; ii < 8; ii++) {
                     for (int jj = 0; jj < 8; jj++) {
-                        at(inp, i + ii, j + jj) = slice[ii][jj];
+                        if (slice[ii][jj] < 0) at(inp, i + ii, j + jj) = 0;
+                        else if (slice[ii][jj] > 255) at(inp, i + ii, j + jj) = 255;
+                        else at(inp, i + ii, j + jj) = slice[ii][jj];
                     }
                 }
             }
