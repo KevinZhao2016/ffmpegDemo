@@ -152,7 +152,7 @@ namespace frameSign {
 #ifdef debug_msg
                     cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
 #endif
-                    if (a - b < 8 && b - a < 8) {
+                    if (a - b < 4 && b - a < 4) {
                         // read EOF.
                         isgrab = false;
                     } else {
