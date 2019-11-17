@@ -18,6 +18,7 @@ namespace frameSign {
     float A[8][8], At[8][8];
     pixel grab_msg[1000], join_msg[1000];
     int grab_counter = 0, join_counter = 0;
+    const int max_append_zero_len = 8 * 16;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
     {
