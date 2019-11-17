@@ -96,6 +96,7 @@ namespace frameSign {
         float slice[8][8];
         int __height = (height >> 3) << 3, __width = (width >> 3) << 3;
         int linelen = width;
+        int wtf = 0;
         for (int i = 0; i < __height; i += 8) {
             for (int j = 0; j < __width; j += 8) {
 
@@ -153,6 +154,7 @@ namespace frameSign {
 #ifdef debug_msg
                     cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
 #endif
+#ifdef mode_EOF
                     if (a - b < 4 && b - a < 4) {
                         // read EOF.
                         isgrab = false;
@@ -165,7 +167,22 @@ namespace frameSign {
                             grab_counter++;
                             cerr << "cannot understand message." << endl;
                         }
-
+#else // mode_zeros
+                    if (a - b > 0) {
+                        grab_msg[grab_counter++] = 1;
+                        wtf = 0;
+                    } else if (b - a > 0) {
+                        grab_msg[grab_counter++] = 0;
+                        wtf++;
+                        if (wtf == max_append_zero_len) {
+                            // end of message.
+                            cout << "get end of message." << endl;
+                            isgrab = false;
+                        }
+                    } else {
+                        grab_counter++;
+                        cerr << "cannot understand message." << endl;
+#endif
 #ifdef debug_msg
                         cout << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
 #endif
@@ -220,7 +237,8 @@ namespace frameSign {
                         b += slice[layer + 4 - ii][ii - 4];
                     }
 
-                    if (join_counter == msglen) {
+                    if (join_counter == msglen + 1) {
+#ifdef mode_EOF
                         // insert EOF
                         static int EOF_counter = 0;
                         cout << "insert EOF " << EOF_counter << endl;
@@ -249,6 +267,7 @@ namespace frameSign {
                             b1 += slice[layer + 4 - ii][ii - 4];
                         }
                         cout << "EOF sum is :" << a1 << " " << b1 << endl;
+#endif
 #endif
                         isjoin = false;
                     } else {
