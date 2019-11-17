@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     cout << "in" << endl;
     mpeg.insertMark("people_test_en.mp4","sign_people_test_en.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
     cout << "out" << endl;
-    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
+//    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
 //    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9XBXw11C2US0dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
     return 0;
 }

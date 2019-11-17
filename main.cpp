@@ -184,6 +184,9 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             cout << "oout " << endl;
             ends = clock();
             cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+
+            frameSign::grab_message(frame, sig.message, height, width);
+            sig.size = frameSign::grab_message_length();
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);

@@ -4,6 +4,7 @@
 #define debug_msg
 
 #include "frameSign.h"
+
 namespace frameSign {
     float msk[8][8] = {{16, 11, 10, 16, 24,  40,  51,  61},
                        {12, 12, 14, 19, 26,  58,  60,  55},
@@ -16,7 +17,7 @@ namespace frameSign {
     float pi = acos(-1.0);
     float A[8][8], At[8][8];
     pixel grab_msg[1000], join_msg[1000];
-    int grab_counter, join_counter;
+    int grab_counter = 0, join_counter = 0;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
     {
@@ -70,7 +71,7 @@ namespace frameSign {
     pixel bit_message(pixel *inl, int counter) {
         // little-endian order.
         pixel a = counter / 8, b = counter % 8;
-        return inl[a] & (1 << b);
+        return (inl[a] & (1 << b)) > 0 ? 1 : 0;
     }
 
 //    void solve(float *inp, pixel msg, bool isend = false, int linelen = 8, int bits = 2) {
@@ -120,8 +121,10 @@ namespace frameSign {
                         a += slice[layer - ii][ii];
                     }
                     for (int ii = 3; ii >= 0; ii--) {
-                        b += slice[3 - ii][ii];
+                        b += slice[layer - ii][ii];
+                        //if (check_grab_counter == 1) cout << (flaot)slice[layer - ii][ii] << ' ';
                     }
+                    //cout << endl;
 #ifdef debug_msg
                     cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
 #endif
@@ -129,9 +132,9 @@ namespace frameSign {
                         // read EOF.
                         isgrab = false;
                     } else {
-                        if (a - b > 10) {
+                        if (a - b > 8) {
                             grab_msg[grab_counter++] = 1;
-                        } else if (b - a > 10) {
+                        } else if (b - a > 8) {
                             grab_msg[grab_counter++] = 0;
                         } else {
                             grab_counter++;
@@ -181,10 +184,8 @@ namespace frameSign {
 #endif
 
                 if (isjoin) {
-
-                    int layer = 7;
-                    float a = 0,
-                    b = 0;
+                    const int layer = 7;
+                    float a = 0,b = 0;
                     for (int ii = layer; ii >= 4; ii--) {
                         a += slice[layer - ii][ii];
                         b += slice[layer + 4 - ii][ii - 4];
@@ -201,7 +202,7 @@ namespace frameSign {
                                 slice[layer + 4 - ii][ii - 4] += des;
                             }
                         } else {
-                            int des = floor((b - a)/ 8);
+                            int des = floor((b - a) / 8);
                             for (int ii = layer; ii >= 4; ii--) {
                                 slice[layer - ii][ii] += des;
                                 slice[layer + 4 - ii][ii - 4] -= des;
@@ -221,20 +222,24 @@ namespace frameSign {
                         cout << "EOF sum is :" << a1 << " " << b1 << endl;
 #endif
                         isjoin = false;
-
                     } else {
+                        grab_msg[join_counter] = bit_message(join_msg, join_counter);
+                        cout << "insert message bit " << join_counter << ':'
+                             << (int) bit_message(join_msg, join_counter) << endl;
                         if (bit_message(join_msg, join_counter) == 1) {
                             if (a - b < 16) {
                                 int des = ceil((16 - (a - b)) / 8);
-                                cout << "des is " << des << endl;
+                                cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] += des;
                                     slice[layer + 4 - ii][ii - 4] -= des;
                                 }
                             }
                         } else {
+                            cout << b << ' ' << a << endl;
                             if (b - a < 16) {
                                 int des = ceil((16 - (b - a)) / 8);
+                                cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] -= des;
                                     slice[layer + 4 - ii][ii - 4] += des;
@@ -244,7 +249,6 @@ namespace frameSign {
                     }
                     join_counter++;
                 }
-                static int counter = 0;
                 mat_mul((float *) A, (float *) slice, (float *) res, 8, 8, 8);
                 mat_mul((float *) res, (float *) At, (float *) slice, 8, 8, 8);
                 for (int ii = 0; ii < 8; ii++) {
@@ -259,7 +263,7 @@ namespace frameSign {
     void join_message(AVFrame *frame, pixel *sign, int height, int width, pixel *join_msg, int msglen) {
 #ifdef debug_msg
         for (int i = 0; i < 20; i++) {
-            cout << (int)join_msg[i] << ' ';
+            cout << (int) join_msg[i] << ' ';
         }
 #endif
         initDctMat();
@@ -274,11 +278,20 @@ namespace frameSign {
         cout << "iiin" << endl;
         dct_frame((float *) precise_mat, height, width);
         cout << "mmidle" << endl;
-        idct_frame((float *) precise_mat, height, width, true, join_msg, msglen); // join message write in idct_frame, because grabbing message do not affect message.
+        idct_frame((float *) precise_mat, height, width, true, join_msg,
+                   msglen); // join message write in idct_frame, because grabbing message do not affect message.
         cout << "ooout" << endl;
+
+#ifdef debug_msg
+        cout << "join message:" << endl;
+        for (int i = 0; i < join_counter; i++) {
+            cout << (int) grab_msg[i] << ' ';
+        }
+        cout << endl;
+#endif
     }
 
-    pixel* grab_message(AVFrame *frame, pixel *out, int height, int width) {
+    pixel *grab_message(AVFrame *frame, pixel *out, int height, int width) {
         initDctMat();
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
