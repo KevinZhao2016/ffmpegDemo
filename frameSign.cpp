@@ -266,6 +266,7 @@ namespace frameSign {
         }
 #endif
         initDctMat();
+        msglen *= 8; // input msglen is bytes long. This module uses as bits long.
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
         int linelen = width;
@@ -288,6 +289,12 @@ namespace frameSign {
         }
         cout << endl;
 #endif
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                at(mat, i, j) = at(precise_mat, i, j);
+            }
+        }
     }
 
     pixel *grab_message(AVFrame *frame, pixel *out, int height, int width) {
@@ -306,10 +313,10 @@ namespace frameSign {
             if (i % 8 == 0 && i > 0) {
                 p++;
             }
-            join_msg[p] += ((grab_msg[i] & 1) << (i % 8));
+            out[p] += ((grab_msg[i] & 1) << (i % 8));
         }
         join_counter = p + 1;
-        return join_msg;
+        return out;
     }
 
     int grab_message_length() {
