@@ -23,7 +23,7 @@ namespace frameSign {
     float A[8][8], At[8][8];
     pixel grab_msg[1000], join_msg[1000];
     int grab_counter = 0, join_counter = 0;
-    const int max_append_zero_len = 8 * 16 - 1;
+    const int max_append_zero_len = 8 * 8 - 1;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
     {
@@ -239,7 +239,7 @@ namespace frameSign {
                         b += slice[layer + 4 - ii][ii - 4];
                     }
 
-                    if (join_counter == msglen + 1) {
+                    if (join_counter == msglen) {
 #ifdef mode_EOF
                         // insert EOF
                         static int EOF_counter = 0;
@@ -279,8 +279,8 @@ namespace frameSign {
                         int des = 0;
                         if (bit_message(join_msg, join_counter) == 1) {
                             cout << a << ' ' << b << endl;
-                            if (a - b < 32) {
-                                des = ceil((32 - (a - b)) / 8);
+                            if (a - b < -32) {
+                                des = ceil((64 - (a - b)) / 8);
                                 cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] += des;
@@ -296,8 +296,8 @@ namespace frameSign {
                             }
                         } else {
                             cout << a << ' ' << b << endl;
-                            if (b - a < 32) {
-                                des = ceil((32 - (b - a)) / 8);
+                            if (b - a < -32) {
+                                des = ceil((64 - (b - a)) / 8);
                                 cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] -= des;

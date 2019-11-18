@@ -285,7 +285,7 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
 //            getMark(frame);
             frameSign::grab_message(frame, sig.message, height, width);
             sig.size = frameSign::grab_message_length();
-            sig.size -= 16;
+            sig.size -= 8;
             count++;
             ends = clock();
             cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;

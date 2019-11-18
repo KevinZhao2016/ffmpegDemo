@@ -105,11 +105,11 @@ public:
         sig.size = base64.Decode(sign.c_str(), sig.message);
 //        sig.message[sig.size++] = 0xaa; //结束符
         base64.Encode(sig.message, sig.size);
-        for (int i = sig.size; i < sig.size + 15; ++i) {
+        for (int i = sig.size ; i < sig.size + 7; ++i) {
             sig.message[i] = 0;
         } // 添加结尾冗余信息
-        sig.message[sig.size + 15] = 1;
-        sig.size += 16;
+        sig.message[sig.size + 7] = 128;
+        sig.size += 8;
         Open_In_fine(infile, videoidx, audioidx, ic);
         Open_out_put_file(outfile, videoidx, audioidx, videoStream, audioStream, ic, oc);
         write_url_file(ic, oc, videoidx, audioidx, true, -1);
@@ -138,8 +138,8 @@ void signBenchMark(){
         cout << "signOut " << signOut << endl;
         if(sign == signOut)
             count++;
-        else
-            break;
+//        else
+//            break;
         cout << "result: " << count << endl;
     }
     cout << "result: " << count << endl;
