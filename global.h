@@ -17,7 +17,7 @@ extern "C" {
 #define KEYLENGTH 20
 
 typedef struct signature {
-    unsigned char message[100] = {0};//签名
+    unsigned char message[120] = {0};//签名
     int size = 0;
 } Signature;
 Signature sig = Signature();

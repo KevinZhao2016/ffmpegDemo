@@ -179,14 +179,12 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             clock_t start, ends;
             start = clock();
 //            insertMark(frame);
-            cout << "iin" << endl;
             frameSign::join_message(frame, sig.message, height, width, sig.message, sig.size);
-            cout << "oout " << endl;
             ends = clock();
-            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
-            frameSign::grab_message(frame, sig.message, height, width);
-            sig.size = frameSign::grab_message_length();
+//            frameSign::grab_message(frame, sig.message, height, width);
+//            sig.size = frameSign::grab_message_length();
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);
@@ -287,6 +285,7 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
 //            getMark(frame);
             frameSign::grab_message(frame, sig.message, height, width);
             sig.size = frameSign::grab_message_length();
+            sig.size -= 16;
             count++;
             ends = clock();
             cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;

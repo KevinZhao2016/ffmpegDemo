@@ -1,9 +1,9 @@
 //
 // Created by Occulticplus on 2019/11/12.
 //
-#define debug_msg
+#define debug_msg1
 
-#define debug_bound
+#define debug_bound1
 
 #include "frameSign.h"
 
@@ -23,7 +23,7 @@ namespace frameSign {
     float A[8][8], At[8][8];
     pixel grab_msg[1000], join_msg[1000];
     int grab_counter = 0, join_counter = 0;
-    const int max_append_zero_len = 8 * 16;
+    const int max_append_zero_len = 8 * 4;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
     {
@@ -116,7 +116,7 @@ namespace frameSign {
                         }
                         cout << endl;
                     }
-                    if(!isgrab) debug_list_counter++;
+                    if (!isgrab) debug_list_counter++;
                 }
                 if (!isgrab) check_grab_counter0++;
 #endif
@@ -148,9 +148,7 @@ namespace frameSign {
                     }
                     for (int ii = 3; ii >= 0; ii--) {
                         b += slice[layer - ii][ii];
-                        //if (check_grab_counter == 1) cout << (flaot)slice[layer - ii][ii] << ' ';
                     }
-                    //cout << endl;
 #ifdef debug_msg
                     cout << "Get sum " << grab_counter << ": " << a << " , " << b << endl;
 #endif
@@ -173,7 +171,10 @@ namespace frameSign {
                         wtf = 0;
                     } else if (b - a > 0) {
                         grab_msg[grab_counter++] = 0;
-                        wtf++;
+                        if (grab_counter % 8 == 1 && wtf == 0) {
+                            wtf = 1;
+                        } else if (wtf > 0)
+                            wtf++;
                         if (wtf == max_append_zero_len) {
                             // end of message.
                             cout << "get end of message." << endl;
@@ -277,7 +278,14 @@ namespace frameSign {
                         int des = 0;
                         if (bit_message(join_msg, join_counter) == 1) {
                             cout << a << ' ' << b << endl;
-                            if (a - b < 16) {
+                            if (a - b < 32) {
+                                des = ceil((32 - (a - b)) / 8);
+                                cout << "des1 is " << des << endl;
+                                for (int ii = layer; ii >= 4; ii--) {
+                                    slice[layer - ii][ii] += des;
+                                    slice[layer + 4 - ii][ii - 4] -= des;
+                                }
+                            } else if (a - b < 16) {
                                 des = ceil((16 - (a - b)) / 8);
                                 cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
@@ -287,7 +295,14 @@ namespace frameSign {
                             }
                         } else {
                             cout << a << ' ' << b << endl;
-                            if (b - a < 16) {
+                            if (b - a < 32) {
+                                des = ceil((32 - (b - a)) / 8);
+                                cout << "des0 is " << des << endl;
+                                for (int ii = layer; ii >= 4; ii--) {
+                                    slice[layer - ii][ii] -= des;
+                                    slice[layer + 4 - ii][ii - 4] += des;
+                                }
+                            } else if (b - a < 16) {
                                 des = ceil((16 - (b - a)) / 8);
                                 cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
@@ -308,7 +323,8 @@ namespace frameSign {
                     for (int jj = 0; jj < 8; jj++) {
                         if (slice[ii][jj] < 0) at(inp, i + ii, j + jj) = 0;
                         else if (slice[ii][jj] > 255) at(inp, i + ii, j + jj) = 255;
-                        else at(inp, i + ii, j + jj) = slice[ii][jj];
+                        else
+                            at(inp, i + ii, j + jj) = slice[ii][jj];
                     }
                 }
             }
@@ -323,6 +339,7 @@ namespace frameSign {
         }
 #endif
         initDctMat();
+        join_counter = 0;
         msglen *= 8; // input msglen is bytes long. This module uses as bits long.
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
@@ -332,12 +349,9 @@ namespace frameSign {
                 at(precise_mat, i, j) = (float) at(mat, i, j);
             }
         }
-        cout << "iiin" << endl;
         dct_frame((float *) precise_mat, height, width);
-        cout << "mmidle" << endl;
         idct_frame((float *) precise_mat, height, width, true, join_msg,
                    msglen); // join message write in idct_frame, because grabbing message do not affect message.
-        cout << "ooout" << endl;
 
 #ifdef debug_msg
         cout << "join message:" << endl;
@@ -359,6 +373,7 @@ namespace frameSign {
         debug_list_counter = 0;
 #endif
         initDctMat();
+        grab_counter = 0;
         pixel *mat = frame->data[0];
         float *precise_mat = new float[height * width];
         int linelen = width;
