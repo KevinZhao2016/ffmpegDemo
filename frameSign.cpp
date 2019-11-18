@@ -23,7 +23,7 @@ namespace frameSign {
     float A[8][8], At[8][8];
     pixel grab_msg[1000], join_msg[1000];
     int grab_counter = 0, join_counter = 0;
-    const int max_append_zero_len = 8 * 4;
+    const int max_append_zero_len = 8 * 16 - 1;
 
     void initDctMat()  //计算8x8块的离散余弦变换系数
     {
@@ -165,31 +165,32 @@ namespace frameSign {
                             grab_counter++;
                             cerr << "cannot understand message." << endl;
                         }
+                    }
 #else // mode_zeros
                     if (a - b > 0) {
                         grab_msg[grab_counter++] = 1;
+                        if (wtf >= max_append_zero_len) {
+                            // read ...0001, which is end of message.
+                            cout << "read the end of message" << endl;
+                            if (grab_counter % 8 != 0) {
+                                cout << "Error: the message does not align to 8." << endl;
+                                cout << "Get Total bits: " << grab_counter << endl;
+                            }
+                            isgrab = false;
+                        }
                         wtf = 0;
                     } else if (b - a > 0) {
                         grab_msg[grab_counter++] = 0;
-                        if (grab_counter % 8 == 1 && wtf == 0) {
-                            wtf = 1;
-                        } else if (wtf > 0)
-                            wtf++;
-                        if (wtf == max_append_zero_len) {
-                            // end of message.
-                            cout << "get end of message." << endl;
-                            isgrab = false;
-                        }
+                        wtf++;
                     } else {
                         grab_counter++;
                         cerr << "cannot understand message." << endl;
+                    }
 #endif
 #ifdef debug_msg
-                        cout << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
+                    cout << grab_counter - 1 << ": " << (int) grab_msg[grab_counter - 1] << endl;
 #endif
-                    }
                 }
-
                 for (int ii = 0; ii < 8; ii++) {
                     for (int jj = 0; jj < 8; jj++) {
                         at(inp, i + ii, j + jj) = slice[ii][jj];
