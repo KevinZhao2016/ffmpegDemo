@@ -126,15 +126,7 @@ router.post('/', (req, res) => {
                 });
                 reject();
             }else{
-                res.send({
-                    status: '200',
-                    msg: 'OK successfully encrypted.',
-                    strongkey: ret.strongkey,
-                    weakkey: ret.weakkey,
-                    publickey: ret.publickey,
-                    privatekey: ret.privatekey,
-                    iv: ret.iv
-                });
+                wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
                 resolve();
             }
           
@@ -157,6 +149,16 @@ router.post('/', (req, res) => {
                     const sk = JSON.parse(body)[0][1];
                     accountInfo.publicKey = pk;
                     accountInfo.privateKey = sk;
+
+                    res.send({
+                        status: '200',
+                        msg: 'OK successfully encrypted.',
+                        strongkey: ret.strongkey,
+                        weakkey: ret.weakkey,
+                        publickey: ret.publickey,
+                        privatekey: ret.privatekey,
+                        iv: ret.iv
+                    });
 
                     console.log('got keys. Marking...');
                     resolve();
