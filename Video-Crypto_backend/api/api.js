@@ -8,8 +8,9 @@ const display = require('./display');
 const grab_offline = require('./grab_offline');
 const grab_online = require('./grab_online');
 const certificate = require('./certificate');
-const blank = require('./blank')
-const test = require('./test')
+const blank = require('./blank');
+const test = require('./test');
+const onchain = require('./onchain');
 
 router.use('/register', register);
 router.use('/login', login);
@@ -22,5 +23,6 @@ router.use('/grab-online', grab_online);
 router.use('/certificate', certificate);
 router.use('/blank', blank);
 router.use('/test', test);
+router.use('/onchain', onchain);
 
 module.exports = router;

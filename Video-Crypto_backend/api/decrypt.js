@@ -26,6 +26,12 @@ router.post('/', (req, res) => {
         console.log('Got requests. Now decrypting...');
         const filename = msg.filename.replace('encrypt_','decrypt_');
         // console.log(filename);
+        if (msg.strongkey === null) {
+            msg.strongkey = 'null';
+        }
+        if (msg.weakkey === null) {
+            msg.weakkey = 'null';
+        }
         let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 2 ' + msg.filename + ' ' + filename + ' '+ msg.strongkey + ' ' + msg.weakkey + ' ' + msg.iv).toString();
         console.log('Decryption finished. Now returns...');
         wtf = wtf.replace(/ /g, '').replace(/\r/g, '').replace(/\n/g, '');
