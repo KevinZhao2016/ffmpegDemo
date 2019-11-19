@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-project(ffmpegDemo)
+project(ffmpegDemp)
 
 include_directories(/usr/local/Cellar/ffmpeg/4.1.4_2/include/)
 link_directories(/usr/local/Cellar/ffmpeg/4.1.4_2/lib/)
