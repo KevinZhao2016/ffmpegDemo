@@ -2,8 +2,8 @@
 #include "framecrypto.h"
 
 #define debug2
-#define debugloss
-#define debugZUC
+//#define debugloss
+//#define debugZUC
 #define non_frequency_check
 //#define frequency_field
 

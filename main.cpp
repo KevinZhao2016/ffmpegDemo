@@ -235,10 +235,10 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
     }
     unsigned char *p = sig->message;
     if (if_verify) {
-//        int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
+        int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
         ends = clock();
 //        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
-        return 1;
+//        return 1;
         return ans;
     } else {
         sig->size = crypto.finishSigh(p, PRIVATE_KEY);
