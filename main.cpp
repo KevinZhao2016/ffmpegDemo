@@ -147,7 +147,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
                 }
-
                 flag = false;
             } else if (mode == 0) {
                 changeKey(zucStrongKey);
@@ -163,12 +162,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                     ends = clock();
 //                    cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
                 }
-//                if (!frame->key_frame) {
-//                    uint8_t *mat = frame->data[0];
-//                    for (int j = 0; j < 1080 * 1920; ++j) {
-//                        mat[j] = keyMat[j];
-//                    }//非关键帧
-//                }
                 flag = false;
             }
 
@@ -183,8 +176,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
             ends = clock();
 //            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
 
-//            frameSign::grab_message(frame, sig.message, height, width);
-//            sig.size = frameSign::grab_message_length();
         }
 
         value = avcodec_send_frame(outAVCodecContext, frame);
@@ -201,7 +192,6 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
                 cout << "Error during encoding" << endl;
                 return;
             }
-//            cout << "encoding success" << endl;
             Time_base(pkt, ic, oc);
             av_write_frame(oc, pkt);
         }
@@ -232,7 +222,7 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
         if (pkt->stream_index == videoidx) {
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
                 if (count > 1)
-                    crypto.UpdateSignBySM2(&pkt->pts, pkt->size);
+                    crypto.UpdateSignBySM2(&pkt->stream_index, pkt->size);
                 count++;
             }
             continue;
@@ -288,7 +278,7 @@ void decodeFrame(AVCodecContext *ct, AVPacket *pkt, AVFrame *frame, int &count) 
             sig.size -= 8;
             count++;
             ends = clock();
-            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
+//            cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC * 1000 << endl;
             return;
         }
     }

@@ -144,8 +144,7 @@ public:
     }
 
 
-    void UpdateSignBySM2(int64_t *msg, int len) {
-//        cout << "SM2 update:" << " ";
+    void UpdateSignBySM2(int *msg, int len) {
         EVP_DigestUpdate(mdctx, msg, sizeof(msg));
     }
 

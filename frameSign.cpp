@@ -171,7 +171,7 @@ namespace frameSign {
                         grab_msg[grab_counter++] = 1;
                         if (wtf >= max_append_zero_len) {
                             // read ...0001, which is end of message.
-                            cout << "read the end of message" << endl;
+//                            cout << "read the end of message" << endl;
                             if (grab_counter % 8 != 0) {
                                 cout << "Error: the message does not align to 8." << endl;
                                 cout << "Get Total bits: " << grab_counter << endl;
@@ -274,38 +274,38 @@ namespace frameSign {
                         isjoin = false;
                     } else {
                         grab_msg[join_counter] = bit_message(join_msg, join_counter);
-                        cout << "insert message bit " << join_counter << ':'
-                             << (int) bit_message(join_msg, join_counter) << endl;
+//                        cout << "insert message bit " << join_counter << ':'
+//                             << (int) bit_message(join_msg, join_counter) << endl;
                         int des = 0;
                         if (bit_message(join_msg, join_counter) == 1) {
-                            cout << a << ' ' << b << endl;
+//                            cout << a << ' ' << b << endl;
                             if (a - b < -32) {
                                 des = ceil((64 - (a - b)) / 8);
-                                cout << "des1 is " << des << endl;
+//                                cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] += des;
                                     slice[layer + 4 - ii][ii - 4] -= des;
                                 }
                             } else if (a - b < 16) {
                                 des = ceil((16 - (a - b)) / 8);
-                                cout << "des1 is " << des << endl;
+//                                cout << "des1 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] += des;
                                     slice[layer + 4 - ii][ii - 4] -= des;
                                 }
                             }
                         } else {
-                            cout << a << ' ' << b << endl;
+//                            cout << a << ' ' << b << endl;
                             if (b - a < -32) {
                                 des = ceil((64 - (b - a)) / 8);
-                                cout << "des0 is " << des << endl;
+//                                cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] -= des;
                                     slice[layer + 4 - ii][ii - 4] += des;
                                 }
                             } else if (b - a < 16) {
                                 des = ceil((16 - (b - a)) / 8);
-                                cout << "des0 is " << des << endl;
+//                                cout << "des0 is " << des << endl;
                                 for (int ii = layer; ii >= 4; ii--) {
                                     slice[layer - ii][ii] -= des;
                                     slice[layer + 4 - ii][ii - 4] += des;
@@ -394,7 +394,7 @@ namespace frameSign {
             cout << (int) grab_msg[i] << ' ';
 #endif
         }
-        cout << endl;
+//        cout << endl;
         join_counter = p + 1;
         return out;
     }

@@ -50,11 +50,6 @@ public:
         Open_In_fine(inpath, videoidx, audioidx, ic);
         getPktSign(ic, videoidx, audioidx, 0, &sig);
         avformat_close_input(&ic);
-//        cout << "file sign is:" << endl;
-//        for (int i = 0; i < sig.size; i++) {
-//            printf("%02x ", sig.message[i]);
-//        }
-//        cout << endl;
         base = base64.Encode(sig.message, sig.size);
         return base;
     }
@@ -63,7 +58,7 @@ public:
         strcpy(this->inpath, file);
         PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n" + publicKey + "\n-----END PUBLIC KEY-----";
         sig.size = base64.Decode(sign.c_str(), sig.message);
-//        cout << sig.size << endl;
+        cout << sig.size << endl;
         Open_In_fine(inpath, videoidx, audioidx, ic);
         int ans = getPktSign(ic, videoidx, audioidx, 1, &sig);
         avformat_close_input(&ic);
@@ -129,7 +124,7 @@ public:
 void signBenchMark(){
     Mpeg mpeg = Mpeg();
     int count = 0;
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1; ++i) {
         string sign = mpeg.getSign("people_test_en.mp4", PRIVATE_KEY);
         mpeg.insertMark("people_test_en.mp4","sign_people_test_en.mp4",sign);
         sig = signature();
@@ -146,43 +141,43 @@ void signBenchMark(){
 }
 
 int main(int argc, char *argv[]) {
-//    Mpeg mpeg = Mpeg();
+    Mpeg mpeg = Mpeg();
     av_log_set_level(AV_LOG_QUIET);
-//    switch (*argv[1]) {
-//        case '1':
-//            mpeg.encryptFrame(argv[2], argv[3]);
-//            break;
-//        case '2':
-//            mpeg.decryptFrame(argv[2], argv[3], argv[4], argv[5], argv[6]);
-//            break;
-//        case '3':
-//            cout << mpeg.getSign(argv[2], argv[3]) << endl;
-//            break;
-//        case '4':
-//            mpeg.insertMark(argv[2], argv[3], argv[4]);
-//            break;
-//        case '5':
-//            cout << mpeg.getWaterMark(argv[2]) << endl;
-//            break;
-//        case '6':
-//            cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
-//            break;
-//        case '7':
-//            mpeg.getKeyPair();
-//            break;
-//        default:
-//            cout << argv[1] << endl;
-//            break;
-//    }
+    switch (*argv[1]) {
+        case '1':
+            mpeg.encryptFrame(argv[2], argv[3]);
+            break;
+        case '2':
+            mpeg.decryptFrame(argv[2], argv[3], argv[4], argv[5], argv[6]);
+            break;
+        case '3':
+            cout << mpeg.getSign(argv[2], argv[3]) << endl;
+            break;
+        case '4':
+            mpeg.insertMark(argv[2], argv[3], argv[4]);
+            break;
+        case '5':
+            cout << mpeg.getWaterMark(argv[2]) << endl;
+            break;
+        case '6':
+            cout << mpeg.verifySign(argv[2], argv[3], argv[4]) << endl;
+            break;
+        case '7':
+            mpeg.getKeyPair();
+            break;
+        default:
+            cout << argv[1] << endl;
+            break;
+    }
 
 //    mpeg.getKeyPair();
 //    mpeg.encryptFrame("people_test.mp4", "people_test_en.mp4");
-//    mpeg.decryptFrame("people_test_en.mp4", "hf111.mp4","Km9g8ySf3c+eCPD9aIRGlfb4zSo=","Vu9IswGgvZolioK4XN/JdSB+HtQ=","QcAHkR4b6W5kaQSxovFsK+MW0Io=");
-//    cout << mpeg.getSign("test_golf.mp4", PRIVATE_KEY) << endl;
-//    mpeg.insertMark("people_test_en.mp4","sign_people_test_en.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B");
+//    mpeg.decryptFrame("people_test_en.mp4", "hf111.mp4","t/JiAagb+ZV1a2Ml1uuz/RLd9YE=","","F0oZp67i6HvCX+r77k6XjQSGeE0=");
+//    cout << mpeg.getSign("people_test_en.mp4", PRIVATE_KEY) << endl;
+//    mpeg.insertMark("people_test_en.mp4","sign_people_test_en.mp4","MEUCIHaBCJ7DgMiNZ81NEs1WREIz1aYB+EhxNXYquYtUXp44AiEAuDyzU0igd2o3I4fF2k35ozi1rBVF+3gABgAdgFqpxTI=");
 //    sig = signature();
 //    cout << mpeg.getWaterMark("sign_people_test_en.mp4") << endl;
-//    cout << mpeg.verifySign("test1.mp4","MEYCIQDlFzDPUXPPWv42xQoU6FUxdh/MXqlE9XBXw11C2US0dRsK6GW7cFQLQIhAMES3Sf8Nh2BSOY8dM98OvBMDqw//yG0IXV2HvjX6I8B","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
-    signBenchMark();
+//    cout << mpeg.verifySign("sign_people_test_en.mp4","MEUCIHaBCJ7DgMiNZ81NEs1WREIz1aYB+EhxNXYquYtUXp44AiEAuDyzU0igd2o3I4fF2k35ozi1rBVF+3gABgAdgFqpxTI=","MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==") << endl;
+//    signBenchMark();
     return 0;
 }

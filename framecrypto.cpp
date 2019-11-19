@@ -4,8 +4,8 @@
 #define debug2
 #define debugloss
 #define debugZUC
-//#define non_frequency_check
-#define frequency_field
+#define non_frequency_check
+//#define frequency_field
 
 #ifdef debugZUC
 #define MODE_ENCRYPT 0
