@@ -119,6 +119,8 @@ router.post('/', (req, res) => {
                 i++;
             }
             console.log('split finished. Now marking it on blockchains...');
+                console.log("asking for blockchains. Password:");
+                console.log(options.body);
             if (ans === 'failed') {
                 res.send({
                     status: '403',
@@ -126,12 +128,12 @@ router.post('/', (req, res) => {
                 });
                 reject();
             }else{
-                wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
                 resolve();
             }
           
         }).then(() => {
             return new Promise((resolve, reject) => {
+
                 request(options, (error, response, body) => {
                     if (error) {
                         console.log(error);
@@ -149,6 +151,7 @@ router.post('/', (req, res) => {
                     const sk = JSON.parse(body)[0][1];
                     accountInfo.publicKey = pk;
                     accountInfo.privateKey = sk;
+                    wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
 
                     res.send({
                         status: '200',

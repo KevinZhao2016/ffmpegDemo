@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>版权登记</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/form-elements.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="../css/reveal.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.4.4.min.js"></script>
+    <script src="../js/jquery.reveal.js"></script>
+    <!-- Favicon and touch icons -->
+
+</head>
+
+<body>
+
+    <!-- Top content -->
+    <div class="top-content">
+
+        <div class="inner-bg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2 text">
+                        <h1><strong>版权登记</strong></h1>
+                        <div class="description">
+                            <p>
+
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3 form-box">
+                        <div class="form-top">
+                            <div class="form-top-left">
+                                <h3>请选择图像进行认证</h3>
+                            </div>
+                            <div class="form-top-right">
+                                <i class="fa fa-key"></i>
+                            </div>
+                        </div>
+                        <div class="form-bottom">
+                            <div class="login-form">
+                                <div class="form-group">
+                                    <!-- <input type="text" id="username" placeholder="用户名" required class="form-username form-control"> -->
+                                    <input type="text" id="base64" placeholder="base" hidden=true>
+                                </div>
+                                <div class="form-group">
+                                    <!--<input type="text" id="count" placeholder="图像" class="form-password form-control" required>-->
+                                    <p>
+                                        <label>请选择一个图像文件(请使用高级浏览器浏览：如Chrome，Firefox)：</label><br>
+                                        <input type="file" id="file_input" style="display:none" οnchange=" readFile();" />
+                                        <button class="btn" id="input">图像读取</button>
+                                    </p>
+                                    <div id="result">
+                                        <!-- 这里用来显示读取结果 -->
+                                    </div>
+                                    
+                                </div>
+
+                                <button class="btn" id="register">登 记</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="myModal_fail" class="reveal-modal">
+        <h1>版权登记失败</h1>
+        <p id="error">图片认证失败或输入信息有误</p>
+        <a class="close-reveal-modal">&#215;</a>
+
+    </div>
+    <div id="myModal_suce" class="reveal-modal">
+
+        <h1>版权登记成功</h1>
+        <span id="pid" style="color: red;font-size:19px">ID</span>
+        <p style="font-size:19px">请注意保存您的版权编号</p>
+        <a class="close-reveal-modal">&#215;</a>
+
+    </div>
+    <!-- Javascript -->
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/jquery.backstretch.min.js"></script>
+    <script src="assets/js/scripts.js"></script>
+    <script src="../js/cpregister_js.js"></script>
+    <script src="../js/import.js"></script>
+</body>
+
+</html>
