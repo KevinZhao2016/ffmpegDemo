@@ -53,6 +53,98 @@ router.post('/', (req, res) => {
         }
         
         console.log('Get requests. Now Encryption...');
+        let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
+        console.log('Encryption ended. Now split outputs...');
+
+        let list = wtf.replace(/\r/g, '').split('\n');
+        let len = list.length;
+        let i = 0, status = 0, ans = 'failed';
+        console.log(list);
+        while(i < len) {
+            if (list[i] === '') {
+                i++;
+                continue;
+            }
+            let j = 3 < list[i].length ? 3: list[i].length;
+            if (list[i].slice(0, j) === '---') {
+                i++;
+                continue;
+            }
+
+            if (list[i] === 'strongKey') {
+                i++;
+                status = 1;
+                continue;
+            } else if (list[i] === 'weakKey') {
+                i++;
+                status = 2;
+                continue;
+            } else if (list[i] === 'iv'){
+                i++;
+                status = 3;
+                continue;
+            } else if (list[i] === 'success') {
+                ans = 'success';
+                i++;
+                continue;
+            } else if (list[i] === 'publicKey') {
+                i++;
+                status = 4;
+                continue;
+            } else if (list[i] === 'privateKey') {
+                i++;
+                status = 5;
+                continue;
+            } else if (list[i] === 'signature') {
+                i++;
+                status = 6;
+                continue;
+            }
+
+            if (status ===  1) {
+                ret.strongkey += list[i];
+            } else if (status === 2) {
+                ret.weakkey += list[i];
+            } else if (status === 3) {
+                ret.iv += list[i];
+            } else if (status === 4) {
+                ret.publickey += list[i];
+            } else if (status === 5) {
+                ret.privatekey += list[i];
+            } else if (status === 6) {
+                ret.signature += list[i];
+                status = 0;
+            }
+            i++;
+        }
+        console.log('split finished. Now marking it on blockchains...');
+        console.log("asking for blockchains. Password:");
+        console.log(options.body);
+        if (ans === 'failed') {
+            res.send({
+                status: '403',
+                msg: 'OK but encryption failed.'
+            });
+        } else {
+            res.send({
+                status: '200',
+                msg: 'OK successfully encrypted.',
+                strongkey: ret.strongkey,
+                weakkey: ret.weakkey,
+                publickey: ret.publickey,
+                privatekey: ret.privatekey,
+                signature: ret.signature,
+                iv: ret.iv
+            });
+        }
+    } catch (e) {
+        console.log(e);
+        res.send({
+            status: 500,
+            msg: 'something went wrong.'
+        })
+    }
+        /*
         return new Promise((resolve, reject) => {
             let wtf = executor('cd ' + Config.relative_path + ' && ./ffmpegDemo 1 ' + msg.filename + ' ' + filename).toString().trim();
             console.log('Encryption ended. Now split outputs...');
@@ -223,6 +315,7 @@ router.post('/', (req, res) => {
             msg: 'something went wrong.'
         })
     }
+    */
 });
 
 
