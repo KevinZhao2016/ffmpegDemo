@@ -188,33 +188,33 @@
 	<script src="js/main.js"></script>
 	<script>
 
-	window.onload = function() {
+	$("#tbody").ready(function() {
 		alert("getList");
 		$.ajax({
 			url:"http://127.0.0.1:3000/api/display",
 			type:'POST',
 			data:jsonData,
 			dataType: "json", 
-				success:function(data){
-					if(data.status == 200){
-						for (let index = 0; index < data.length; index++) {
-							let ID = data[index]["ID"];
-							let owner = data[index]["owner"];
-							let signature = data[index]["signature"];
-							let time = data[index]["time"];
-							$('tbody').append('<tr><th>' +ID+'<th>'+owner+'<th>'+signature+'<th>'+tine+'<tr>');
-						}
-					}
-				},
-				error:function(XMLHttpRequest, textStatus, errorThrown) {
-					if(XMLHttpRequest.status==500){
-						alert("获取失败");
+			success:function(data){
+				if(data.status == 200){
+					for (let index = 0; index < data.length; index++) {
+						let ID = data[index]["ID"];
+						let owner = data[index]["owner"];
+						let signature = data[index]["signature"];
+						let time = data[index]["time"];
+						$('tbody').after('<tr><td>' +ID+'<td>'+owner+'<td>'+signature+'<td>'+time+'<tr>');
 					}
 				}
+			},
+			error:function(XMLHttpRequest, textStatus, errorThrown) {
+				if(XMLHttpRequest.status==500){
+					alert("获取失败");
+				}
+			}
 			
     	});
 		
-	}
+	});
 	</script>
 	</body>
 </html>

@@ -7,7 +7,7 @@
 //#define non_frequency_check
 //#define frequency_field
 
-#ifdef debugZUC
+#ifndef debugZUC
 #define MODE_ENCRYPT 0
 #define MODE_DECRYPT 1
 #else
@@ -383,8 +383,6 @@ namespace frameCrypto {
         static int mat_encrypt_check_counter = 0;
         static int mat_decrypt_check_counter = 0;
         for (int i = 0; i < height; i += 8) {
-//        if(i % 16 != 0)
-//            continue;
             for (int j = 0; j < width; j += 8) {
 
                 for (int ii = 0; ii < 8; ++ii) {
@@ -431,7 +429,6 @@ namespace frameCrypto {
                     int c = mat_decrypt_check_counter;
                     dstream << "check mat " << mat_decrypt_check_counter / 1000 << " :" << endl;
                     dstream << "deprecate pixels:" << endl;
-
                     for (int i = 0; i < 8; i++) {
                         for (int j = 0; j < 8; j++) {
                             dstream << (int)slice[i][j] << ' ';
@@ -467,7 +464,7 @@ namespace frameCrypto {
                     }
                     mat_decrypt_check_counter++;
                 } else {
-                    cout << "debug mode :" << mode << endl;
+//                    cout << "debug mode :" << mode << endl;
                     for (int i = 0; i < inlen; i++) {
                         outp_text[i] = inp_text[i];
                     }
