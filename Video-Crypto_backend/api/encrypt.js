@@ -151,7 +151,7 @@ router.post('/', (req, res) => {
                     const sk = JSON.parse(body)[0][1];
                     accountInfo.publicKey = pk;
                     accountInfo.privateKey = sk;
-                    wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
+                    //wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
 
                     res.send({
                         status: '200',

@@ -18,7 +18,8 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 
 router.post((req, res) => {
     const msg = {
-        signature: req.body.signature
+        signature: req.body.signature,
+        filename: req.body.filename
     }
     const options = {
         method: 'POST',
@@ -89,13 +90,19 @@ router.post((req, res) => {
             console.log('RPC response: ');
             console.log(JSON.stringify(value, null, 2));
             console.log('finish');
+            const wtf = executor('cd ' + Config.relative_path + ' && rm ' + msg.filename + ' && rm encrypt_' + msg.filename);
             res.send({
                 status: '200',
                 msg: 'OK successfully encrypted',
                 id: value.rows[0].data.id
             })
+        }).catch(error => {
+            console.log(error);
+            res.send({
+                status: '500',
+                msg: 'Transaction on blockchain rejected.'
+            })
         })
-
     })
 })
 
