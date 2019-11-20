@@ -7,7 +7,7 @@
 //#define non_frequency_check
 //#define frequency_field
 
-#ifdef debugZUC
+#ifndef debugZUC
 #define MODE_ENCRYPT 0
 #define MODE_DECRYPT 1
 #else
