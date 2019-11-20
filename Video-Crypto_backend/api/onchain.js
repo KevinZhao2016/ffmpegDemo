@@ -18,7 +18,7 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 
 router.post((req, res) => {
     const msg = {
-        siganture: req.body.signature
+        signature: req.body.signature
     }
     const options = {
         method: 'POST',

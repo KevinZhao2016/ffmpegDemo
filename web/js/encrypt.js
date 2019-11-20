@@ -38,11 +38,30 @@ $("#encrypt").click(function (e){
                 let publickey = data["publickey"]
                 let privatekey = data["privatekey"]
                 let iv = data["iv"]
+                let signature = data["signature"]
                 document.getElementById("strongkey").innerHTML = strongkey;
                 document.getElementById("weakkey").innerHTML = weakkey;
                 document.getElementById("publickey").value = publickey;
                 document.getElementById("privatekey").value = privatekey;
                 document.getElementById("iv").innerHTML = iv;
+                $.ajax({
+                    url:"http://127.0.0.1:3000/api/onchain",
+                    type:'POST',
+                    data:{signature: signature},
+                    dataType: "json", 
+                    success:function(data){
+                        if(data.status == 200){
+                            let ID = data["ID"]
+                            document.getElementById("pid").innerHTML = ID;
+                            show(1)
+                        }
+                    },
+                    error:function(XMLHttpRequest, textStatus, errorThrown) {
+                        if(XMLHttpRequest.status==500){
+                           show(0)
+                        }
+                    }
+                });
                 show(1)
             }
         },
