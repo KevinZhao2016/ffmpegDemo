@@ -94,7 +94,7 @@ router.post('/', (req, res) => {
             res.send({
                 status: '200',
                 msg: 'OK successfully encrypted',
-                id: value.rows[0].data.id
+                id: value.rows[0].ID
             })
         }).catch(error => {
             console.log(error);

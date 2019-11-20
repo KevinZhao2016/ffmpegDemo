@@ -25,9 +25,7 @@ router.post('/', (req, res) => {
             code: 'admin',
             table: 'video',
             scope: 'admin',
-            limit: 1,
-            reverse: true,
-            show_payer: true
+            reverse: true
         }
         let ret = [];
         request({
@@ -45,7 +43,9 @@ router.post('/', (req, res) => {
             }
             console.log(JSON.stringify(JSON.parse(body), null, 2));
             const list = JSON.parse(body).rows;
+            console.log(list);
             const len = list.length;
+            console.log(len);
             for( i = 0; i < len; i++) {
                 ret.push({
                     ID: list[i].ID,
