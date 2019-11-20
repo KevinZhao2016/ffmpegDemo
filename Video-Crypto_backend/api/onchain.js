@@ -18,7 +18,7 @@ const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), te
 
 router.post((req, res) => {
     const msg = {
-        siganture: req.body.siganture
+        siganture: req.body.signature
     }
     const options = {
         method: 'POST',
@@ -73,12 +73,26 @@ router.post((req, res) => {
             blocksBehind: 3,
             expireSeconds: 30
         }).then(value => {
-            console.log(value);
+            console.log('blockchian response:');
+            console.log(JSON.stringify(value, null, 2));
+            const row = {
+                json: true,
+                code: 'admin',
+                table: 'video',
+                scope: 'admin',
+                limit: 1,
+                reverse: true
+            }
+            console.log('Query for the last transaction...');
+            return rpc.get_table_rows(row);
+        }).then(value => {
+            console.log('RPC response: ');
+            console.log(JSON.stringify(value, null, 2));
             console.log('finish');
             res.send({
                 status: '200',
                 msg: 'OK successfully encrypted',
-                id: value.body.id
+                id: value.rows[0].data.id
             })
         })
 

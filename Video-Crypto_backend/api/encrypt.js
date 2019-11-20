@@ -160,6 +160,7 @@ router.post('/', (req, res) => {
                         weakkey: ret.weakkey,
                         publickey: ret.publickey,
                         privatekey: ret.privatekey,
+                        signature: ret.signature,
                         iv: ret.iv
                     });
 
