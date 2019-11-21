@@ -145,7 +145,7 @@ public:
 
 
     void UpdateSignBySM2(int *msg, int len) {
-        EVP_DigestUpdate(mdctx, msg, sizeof(msg));
+        EVP_DigestUpdate(mdctx, msg, len);
     }
 
     unsigned int finishSigh(unsigned char *sig, const string &private_key) {

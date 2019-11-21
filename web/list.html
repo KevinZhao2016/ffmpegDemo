@@ -134,13 +134,13 @@
 								<th>身份证号
 								<th>认证时间
 						</thead> -->
-						<tbody id = "tbody">
-							<tr>
+						<tbody >
+							<tr id = "tbody">
 								<th>视频编号
 								<th>用户名
 								<th>数字签名
 								<th>认证时间
-							<tr>
+							<!-- <tr>
 								<td>0
 								<td>Alice
 								<td>MEUCIDH0Zr4yM8I+qPrXhRiG3adfIb/9nW1qhNhY5RF6K4U0AiGA19hWC4u/pSn6XT2BFzF7jUE8Bx+DRyC2NM5JD2ok20Q=
@@ -159,7 +159,7 @@
 								<td>3
 								<td>Mallory
 								<td>MEQCICroBQn/nAEgXJTiuIfH9O8Qr1JtROqb0poieZL8bv22AiBVKSvo8o6ADCdYjlqCUqc9aUbuEmM+PUcJbWHME71lrA==
-								<td>2019-10-21 12:10:19
+								<td>2019-10-21 12:10:19 -->
 					
 						</tbody>
 					</table>	
@@ -189,20 +189,18 @@
 	<script>
 
 	$("#tbody").ready(function() {
-		alert("getList");
 		$.ajax({
 			url:"http://127.0.0.1:3000/api/display",
 			type:'POST',
-			data:jsonData,
 			dataType: "json", 
 			success:function(data){
 				if(data.status == 200){
-					for (let index = 0; index < data.length; index++) {
-						let ID = data[index]["ID"];
-						let owner = data[index]["owner"];
-						let signature = data[index]["signature"];
-						let time = data[index]["time"];
-						$('tbody').after('<tr><td>' +ID+'<td>'+owner+'<td>'+signature+'<td>'+time+'<tr>');
+				for (let index = 0; index < data.list.length; index++) {
+							let ID = data.list[index].ID;
+						let owner = data.list[index].owner;
+						let signature = data.list[index].signature;
+						let time = data.list[index].time;
+						$('tbody').append('<tr><td>' +ID+'<td>'+owner+'<td>'+signature+'<td>'+time);
 					}
 				}
 			},

@@ -24,8 +24,8 @@ function getRootPath(){
 
 $("#decrypt").click(function (e){
     let path = document.getElementById("path").innerHTML;
-    let strongkey = document.getElementById("strongkey").value;
-    let weakkey = document.getElementById("weakkey").value;
+    let weakkey = document.getElementById("strongkey").value;
+    let strongkey = document.getElementById("weakkey").value;
     let iv = document.getElementById("iv").value;
     jsonData = {
         filename: path,
@@ -37,7 +37,7 @@ $("#decrypt").click(function (e){
         url:"http://127.0.0.1:3000/api/decrypt",
         type:'POST',
         data:jsonData,
-        dataType: "json", 
+        dataType: "json",
         success:function(data){
             if(data.status == 200){
                 show(1)

@@ -39,20 +39,23 @@ $("#encrypt").click(function (e){
                 let privatekey = data["privatekey"]
                 let iv = data["iv"]
                 let signature = data["signature"]
-                document.getElementById("strongkey").innerHTML = strongkey;
-                document.getElementById("weakkey").innerHTML = weakkey;
+                document.getElementById("strongkey").innerHTML = weakkey;
+                document.getElementById("weakkey").innerHTML = strongkey;
                 document.getElementById("publickey").value = publickey;
                 document.getElementById("privatekey").value = privatekey;
                 document.getElementById("iv").innerHTML = iv;
                 $.ajax({
                     url:"http://127.0.0.1:3000/api/onchain",
                     type:'POST',
-                    data:{signature: signature},
+                    data:{
+                        signature: signature,
+                        filename: path
+                    },
                     dataType: "json", 
                     success:function(data){
                         if(data.status == 200){
-                            let ID = data["ID"]
-                            document.getElementById("pid").innerHTML = ID;
+                            let id = data["id"]
+                            document.getElementById("pid").innerHTML = id;
                             show(1)
                         }
                     },
@@ -62,7 +65,6 @@ $("#encrypt").click(function (e){
                         }
                     }
                 });
-                show(1)
             }
         },
         error:function(XMLHttpRequest, textStatus, errorThrown) {

@@ -9,14 +9,15 @@ using namespace std;
 int fcount = 0;
 
 string PRIVATE_KEY = "-----BEGIN EC PRIVATE KEY-----\n"
-        "MHcCAQEEIOM9oRgXxjg2ls56/gcSVI687gDL6tJGW0xDnXORUAe2oAoGCCqBHM9V\n"
-        "AYItoUQDQgAEIqV5E6jo2vyubCW2C3dTusRcP6KjUzX7JhukcfsNNgLY76RW8K2Y\n"
-        "HpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==\n"
+        "MHcCAQEEIAtlQJ1LgbDD0ME126lKWwzdGd8Hc8TpH04ye9Y1pPEXoAoGCCqBHM9V\n"
+        "AYItoUQDQgAEGXoWnxB3y+7fKJsVWZbhIkao5+97fU1vKWOIsoQOEshfBjSMt5FD\n"
+        "A7Xqg7SBSEk5tAPSRjTDXn1M4w8UgoMGnQ==\n"
         "-----END EC PRIVATE KEY-----";
 string PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n"
-        "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEIqV5E6jo2vyubCW2C3dTusRcP6Kj\n"
-        "UzX7JhukcfsNNgLY76RW8K2YHpP8gRdEAKYozHfFtu7H58lUhD4zJ8j1jA==\n"
+        "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEGXoWnxB3y+7fKJsVWZbhIkao5+97\n"
+        "fU1vKWOIsoQOEshfBjSMt5FDA7Xqg7SBSEk5tAPSRjTDXn1M4w8UgoMGnQ==\n"
         "-----END PUBLIC KEY-----";
+
 string sig_base64 = "MEUCIEkjtHpklPWvrdncb3N2UZQltmpnGywEz77VmPvQQWRfAiEA5vM8jBBQtkKv6hXVGOMXzYLIDnQne+obo8U2SxeRrgE=";
 
 
@@ -200,8 +201,10 @@ av_decode_encode_frame(AVCodecContext *ct, AVCodecContext *outAVCodecContext, AV
 
 int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify, signature *sig) {
     int count = 0; //从第二个关键帧开始签名
-    static Crypto crypto = Crypto();
+    Crypto crypto = Crypto();
     crypto.initSM2();
+    int a = 100;
+    crypto.UpdateSignBySM2(&a, 0);
 
     AVPacket *pkt = av_packet_alloc();
     enum AVCodecID codec_id = AV_CODEC_ID_H264;//解码编码
@@ -221,8 +224,8 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
     while (av_read_frame(ic, pkt) >= 0) {
         if (pkt->stream_index == videoidx) {
             if (pkt->flags == AV_PKT_FLAG_KEY) { //关键帧 取hash
-                if (count > 1)
-                    crypto.UpdateSignBySM2(&pkt->stream_index, pkt->size);
+                if (count > 1 && count <= 200)
+                    crypto.UpdateSignBySM2(&pkt->flags, 4);
                 count++;
             }
             continue;
@@ -235,11 +238,10 @@ int getPktSign(AVFormatContext *ic, int &videoidx, int &audioidx, int if_verify,
     }
     unsigned char *p = sig->message;
     if (if_verify) {
-//        int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
+        int ans = crypto.finishVerify(p, sig->size, PUBLIC_KEY);
         ends = clock();
 //        cout << "time: " << (double) (ends - start) / CLOCKS_PER_SEC << endl;
-        return 1;
-//        return ans;
+        return ans;
     } else {
         sig->size = crypto.finishSigh(p, PRIVATE_KEY);
         ends = clock();
